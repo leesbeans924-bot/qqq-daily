@@ -270,7 +270,7 @@ if (raw.length > 1) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>QQQ Daily — {date_str}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Montserrat:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     :root {{
@@ -279,14 +279,14 @@ if (raw.length > 1) {
       --card:    #13100c;
       --border:  #1e1a12;
       --border2: #2a2318;
-      --text:    #a89880;
-      --dim:     #4a4030;
+      --text:    #c8b99a;
+      --dim:     #7a6a52;
       --gold:    #c9a84c;
-      --gold2:   #e8d4a0;
+      --gold2:   #f0deb0;
       --red:     #c0392b;
       --white:   #f0e8d8;
       --serif:   'Cormorant Garamond', Georgia, serif;
-      --sans:    'Montserrat', sans-serif;
+      --sans:    'Inter', sans-serif;
       --mono:    'Space Mono', monospace;
     }}
     *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
@@ -354,7 +354,7 @@ if (raw.length > 1) {
       font-family: var(--serif);
       font-size: 22px;
       font-weight: 400;
-      color: var(--white);
+      color: #f5ede0;
       line-height: 1.4;
       max-width: 700px;
     }}
@@ -493,7 +493,7 @@ if (raw.length > 1) {
     .co {{
       font-size: 11px;
       font-weight: 300;
-      color: var(--dim);
+      color: #8a7a62;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
