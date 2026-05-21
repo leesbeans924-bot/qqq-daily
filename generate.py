@@ -105,21 +105,35 @@ def fetch_macro():
     return result
 
 def fetch_qqq_30d():
-    now  = int(time.time())
-    past = now - (35 * 24 * 3600)
+    """30-day QQQ daily OHLCV via Yahoo Finance chart API — no key needed."""
     try:
-        r = requests.get(f"{FINNHUB_URL}/stock/candle",
-                         params={"symbol": "QQQ", "resolution": "D",
-                                 "from": past, "to": now, "token": FINNHUB_KEY},
-                         timeout=10)
-        d = r.json()
-        if d.get("s") == "ok" and d.get("t"):
-            return [{"date": datetime.fromtimestamp(t).strftime("%b %-d"),
-                     "close": round(float(c), 2)}
-                    for t, c in zip(d["t"], d["c"])]
+        r = requests.get(
+            "https://query1.finance.yahoo.com/v8/finance/chart/QQQ",
+            params={"interval": "1d", "range": "35d"},
+            headers={"User-Agent": "Mozilla/5.0 (compatible)"},
+            timeout=10
+        )
+        data   = r.json()["chart"]["result"][0]
+        times  = data["timestamp"]
+        closes = data["indicators"]["quote"][0]["close"]
+        highs  = data["indicators"]["quote"][0]["high"]
+        lows   = data["indicators"]["quote"][0]["low"]
+        vols   = data["indicators"]["quote"][0]["volume"]
+        result = []
+        for t, c, h, l, v in zip(times, closes, highs, lows, vols):
+            if c is None: continue
+            result.append({
+                "date":   datetime.fromtimestamp(t).strftime("%b %-d"),
+                "close":  round(float(c), 2),
+                "high":   round(float(h), 2) if h else None,
+                "low":    round(float(l), 2) if l else None,
+                "volume": int(v) if v else None,
+            })
+        print(f"  Chart: {len(result)} days OK")
+        return result
     except Exception as e:
         print(f"  Chart error: {e}")
-    return []
+        return []
 
 def get_analysis(quotes, macro, chart_data):
     client = anthropic.Anthropic()
@@ -131,32 +145,47 @@ def get_analysis(quotes, macro, chart_data):
         for t, q in quotes.items() if t in QQQ_HOLDINGS
     ) or "  (unavailable)"
     macro_lines = "\n".join(fmt(v["label"], v) for v in macro.values()) or "  (unavailable)"
-    prices = [d["close"] for d in chart_data[-10:]]
-    prompt = f"""You are a sharp market analyst writing the QQQ Daily Briefing for serious retail investors.
+    prices = [d["close"] for d in chart_data[-15:]]
+    # Build volume context for prompt
+    vol_context = ""
+    if chart_data and len(chart_data) >= 5:
+        recent = chart_data[-5:]
+        vol_lines = []
+        for d in recent:
+            if d.get("volume"):
+                vol_lines.append(f"{d['date']}: close ${d['close']}, vol {d['volume']/1e6:.1f}M")
+        if vol_lines:
+            vol_context = "\nRECENT DAILY DETAIL (close + volume):\n" + "\n".join(vol_lines)
 
-HOLDINGS:
+    prompt = f"""You are a veteran technical analyst and day trader with 15 years of experience writing nightly market intelligence for serious active traders.
+
+HOLDINGS (today's close and % change):
 {holdings_lines}
 
 MACRO:
 {macro_lines}
 
-30-DAY QQQ PRICE TRAIL (oldest to newest): {prices}
+30-DAY QQQ CLOSES (oldest to newest): {prices}{vol_context}
 
-Write a concise briefing in exactly four sections. No markdown — plain text only. No asterisks or symbols.
+Write a tight, specific nightly briefing in exactly four sections. Plain text only — no markdown, no asterisks, no bold. Write like a sharp trader talking to another sharp trader. Be specific: use price levels, volume figures, and pattern names. No vague language.
 
 SECTION 1 - HEADLINE
-One punchy sentence capturing today's dominant theme.
+One punchy sentence — the single most important thing that happened today.
 
 SECTION 2 - MOVERS
-5 bullet points. Each starts with a dash. Stock or macro item, its move, and the specific reason why.
+5 bullets starting with a dash. For each mover: name the stock or macro item, state the exact move, then give the specific technical or fundamental reason. Reference actual price levels where relevant.
 
 SECTION 3 - CHART
-2-3 sentences on the 30-day price pattern. Name the pattern. State what it suggests next.
+Analyze the 30-day price action like a trader. Name the pattern. Identify key support and resistance levels from the data. Then give two specific scenarios:
+- The bullish case: what the pattern suggests if buyers hold, with a specific price target
+- The bearish case: what breaks down and where support is, with specific levels
+Then name the one key tell — the specific signal (price level, volume, candle type) that will confirm which scenario is playing out.
+Close with one sentence: this is technical analysis, not a prediction — macro events can override any chart setup overnight.
 
 SECTION 4 - TOMORROW
-3 bullet points. Each starts with a dash. Specific catalysts with a bullish and bearish scenario for each.
+3 bullets starting with a dash. Each bullet names a specific catalyst (not vague — name the actual event, speaker, or data release), then gives a crisp bullish outcome and bearish outcome with price implications for QQQ.
 
-Plain sentences only. No markdown. No asterisks."""
+Tone: experienced trader, direct, no hedging waffle, no financial advice disclaimers beyond what is specified above."""
     msg = client.messages.create(
         model="claude-haiku-4-5-20251001",
         max_tokens=900,
@@ -281,36 +310,73 @@ const raw = JSON_DATA;
 if (raw.length > 1) {
   const labels = raw.map(d => d.date);
   const prices = raw.map(d => d.close);
-  const mn = Math.min(...prices) * 0.997;
-  const mx = Math.max(...prices) * 1.003;
-  const ctx = document.getElementById('sparkline').getContext('2d');
-  const g = ctx.createLinearGradient(0, 0, 0, 180);
-  g.addColorStop(0, 'rgba(167,139,250,0.15)');
+  const vols   = raw.map(d => d.volume || 0);
+  const maxVol = Math.max(...vols);
+  const mn = Math.min(...prices) * 0.995;
+  const mx = Math.max(...prices) * 1.005;
+
+  const priceCtx = document.getElementById('sparkline').getContext('2d');
+  const g = priceCtx.createLinearGradient(0, 0, 0, 140);
+  g.addColorStop(0, 'rgba(167,139,250,0.18)');
   g.addColorStop(1, 'rgba(167,139,250,0)');
-  new Chart(ctx, {
+
+  new Chart(priceCtx, {
     type: 'line',
     data: { labels, datasets: [{ data: prices, borderColor: '#a78bfa',
-      borderWidth: 1.5, backgroundColor: g, fill: true,
-      tension: 0.4, pointRadius: 0, pointHoverRadius: 5,
+      borderWidth: 2, backgroundColor: g, fill: true,
+      tension: 0.3, pointRadius: 0, pointHoverRadius: 5,
       pointHoverBackgroundColor: '#a78bfa' }] },
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: {
         legend: { display: false },
         tooltip: {
-          callbacks: { label: c => '$' + c.parsed.y.toFixed(2) },
-          backgroundColor: '#0d0e12', titleColor: '#7880a8',
-          bodyColor: '#a78bfa', borderColor: '#252838', borderWidth: 1,
-          padding: 10
+          callbacks: {
+            title: i => i[0].label,
+            label: i => {
+              const d = raw[i[0].dataIndex];
+              const lines = ['Close: $' + i[0].parsed.y.toFixed(2)];
+              if (d.high)   lines.push('High:  $' + d.high.toFixed(2));
+              if (d.low)    lines.push('Low:   $' + d.low.toFixed(2));
+              if (d.volume) lines.push('Vol:   ' + (d.volume/1e6).toFixed(1) + 'M');
+              return lines;
+            }
+          },
+          backgroundColor: '#0d0e12', titleColor: '#c0c8e8',
+          bodyColor: '#a78bfa', borderColor: '#252838', borderWidth: 1, padding: 10
         }
       },
       scales: {
         x: { display: false },
-        y: { min: mn, max: mx, display: true,
-          grid: { color: 'rgba(167,139,250,0.06)', drawBorder: false },
-          ticks: { color: '#7880a8', font: { size: 10, family: 'Cormorant Garamond' },
-            callback: v => '$' + v.toFixed(0), maxTicksLimit: 4 }
+        y: { min: mn, max: mx, display: true, position: 'right',
+          grid: { color: 'rgba(167,139,250,0.05)', drawBorder: false },
+          ticks: { color: '#7880a8', font: { size: 10 },
+            callback: v => '$' + v.toFixed(0), maxTicksLimit: 5 }
         }
+      }
+    }
+  });
+
+  // Volume bars
+  const volCtx = document.getElementById('volbars').getContext('2d');
+  new Chart(volCtx, {
+    type: 'bar',
+    data: { labels, datasets: [{ data: vols,
+      backgroundColor: raw.map((d, i) =>
+        i === 0 ? 'rgba(167,139,250,0.3)' :
+        d.close >= raw[i-1].close ? 'rgba(167,139,250,0.45)' : 'rgba(248,113,113,0.35)'
+      ),
+      borderWidth: 0, borderRadius: 1 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: {
+        callbacks: { label: i => (i.parsed.y/1e6).toFixed(1) + 'M shares' },
+        backgroundColor: '#0d0e12', bodyColor: '#7880a8',
+        borderColor: '#252838', borderWidth: 1, padding: 8
+      }},
+      scales: {
+        x: { display: false },
+        y: { display: false, min: 0, max: maxVol * 3 }
       }
     }
   });
@@ -587,8 +653,12 @@ if (raw.length > 1) {
       margin-top: 28px;
     }}
     .chart-wrap {{
-      height: 180px;
+      height: 150px;
       margin-top: 10px;
+    }}
+    .vol-wrap {{
+      height: 40px;
+      margin-top: 3px;
     }}
 
     /* ── ANALYSIS SECTION ── */
@@ -750,6 +820,7 @@ if (raw.length > 1) {
     <div class="chart-container">
       <div class="col-label">30-Day Price</div>
       <div class="chart-wrap"><canvas id="sparkline"></canvas></div>
+    <div class="vol-wrap"><canvas id="volbars"></canvas></div>
     </div>
   </div>
 </div>
