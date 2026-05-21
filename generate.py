@@ -1,6 +1,7 @@
 import yfinance as yf
 import anthropic
 import json
+import time
 from datetime import datetime
 import pytz
 import re
@@ -22,38 +23,44 @@ QQQ_HOLDINGS = {
 MACRO_TICKERS = ["^TNX", "^VIX", "CL=F"]
 MACRO_LABELS  = {"^TNX": "10Y Yield", "^VIX": "VIX", "CL=F": "Crude Oil"}
  
-# ── Data fetching ─────────────────────────────────────────────────────────────
+# ── Data fetching — one ticker at a time with retries ─────────────────────────
+def fetch_one(ticker, retries=3):
+    for attempt in range(retries):
+        try:
+            t    = yf.Ticker(ticker)
+            hist = t.fast_info
+            # fast_info gives last price directly
+            price    = round(float(t.fast_info["last_price"]), 2)
+            prev     = round(float(t.fast_info["previous_close"]), 2)
+            change   = round(((price - prev) / prev) * 100, 2)
+            return {"close": price, "change": change, "prev": prev}
+        except Exception as e:
+            print(f"  Attempt {attempt+1} failed for {ticker}: {e}")
+            time.sleep(2)
+    return None
+ 
 def fetch_all(tickers):
-    symbols = " ".join(tickers)
-    try:
-        df = yf.download(symbols, period="5d", interval="1d",
-                         group_by="ticker", auto_adjust=True, progress=False)
-    except Exception as e:
-        print(f"Download error: {e}")
-        return {}
     result = {}
     for t in tickers:
-        try:
-            closes = df["Close"].dropna() if len(tickers) == 1 else df[t]["Close"].dropna()
-            if len(closes) >= 2:
-                prev  = float(closes.iloc[-2])
-                close = float(closes.iloc[-1])
-                chg   = ((close - prev) / prev) * 100
-                result[t] = {"close": round(close, 2), "change": round(chg, 2)}
-        except Exception as e:
-            print(f"  Parse error {t}: {e}")
+        print(f"  Fetching {t}...")
+        q = fetch_one(t)
+        if q:
+            result[t] = q
+        time.sleep(0.5)   # gentle rate limiting
     return result
  
 def fetch_qqq_30d():
-    try:
-        df = yf.download("QQQ", period="30d", interval="1d",
-                         auto_adjust=True, progress=False)
-        closes = df["Close"].dropna()
-        return [{"date": d.strftime("%b %d"), "close": round(float(c), 2)}
-                for d, c in zip(closes.index, closes)]
-    except Exception as e:
-        print(f"Chart error: {e}")
-        return []
+    for attempt in range(3):
+        try:
+            df = yf.download("QQQ", period="30d", interval="1d",
+                             auto_adjust=True, progress=False)
+            closes = df["Close"].dropna()
+            return [{"date": d.strftime("%b %d"), "close": round(float(c), 2)}
+                    for d, c in zip(closes.index, closes)]
+        except Exception as e:
+            print(f"  Chart attempt {attempt+1} failed: {e}")
+            time.sleep(2)
+    return []
  
 # ── Claude analysis ───────────────────────────────────────────────────────────
 def get_analysis(quotes, macro, chart_data):
@@ -64,12 +71,15 @@ def get_analysis(quotes, macro, chart_data):
         return f"  {label}: ${q['close']} ({sign}{q['change']}%)"
  
     holdings_text = "\n".join(
-        fmt(QQQ_HOLDINGS.get(t, t), q) for t, q in quotes.items() if t in QQQ_HOLDINGS
-    )
+        fmt(QQQ_HOLDINGS.get(t, t), q)
+        for t, q in quotes.items() if t in QQQ_HOLDINGS
+    ) or "  (no data available)"
+ 
     macro_text = "\n".join(
         fmt(MACRO_LABELS.get(t, t), q) for t, q in macro.items()
-    )
-    prices_tail = [d["close"] for d in chart_data[-10:]]
+    ) or "  (no data available)"
+ 
+    prices_tail = [d["close"] for d in chart_data[-10:]] if chart_data else []
  
     prompt = f"""You are a sharp market analyst writing the QQQ Daily Briefing for serious retail investors.
  
@@ -100,7 +110,7 @@ Tone: Bloomberg terminal meets sharp analyst. Confident, data-driven."""
     )
     return msg.content[0].text
  
-# ── HTML builder ──────────────────────────────────────────────────────────────
+# ── HTML helpers ──────────────────────────────────────────────────────────────
 def bullets_to_html(text):
     lines = [l.strip().lstrip("•-* ") for l in text.strip().split("\n") if l.strip()]
     items = "".join(f"<li>{l}</li>" for l in lines)
@@ -112,12 +122,13 @@ def para_to_html(text):
 def extract_section(text, header):
     try:
         start = text.index(header) + len(header)
-        nxt = re.search(r'\n[1-4]\. [A-Z]', text[start:])
-        end = start + nxt.start() if nxt else len(text)
+        nxt   = re.search(r'\n[1-4]\. [A-Z]', text[start:])
+        end   = start + nxt.start() if nxt else len(text)
         return text[start:end].strip()
     except:
         return ""
  
+# ── HTML builder ──────────────────────────────────────────────────────────────
 def build_html(quotes, macro, chart_data, analysis):
     et       = pytz.timezone("America/New_York")
     now      = datetime.now(et)
@@ -133,6 +144,7 @@ def build_html(quotes, macro, chart_data, analysis):
     qqq_chg   = qqq.get("change", 0)
     qqq_color = "#00ff88" if qqq_chg >= 0 else "#ff4466"
     qqq_arrow = "▲" if qqq_chg >= 0 else "▼"
+    qqq_price = f'${qqq.get("close", "--")}' if qqq else "$--"
  
     def holding_row(ticker, name):
         q = quotes.get(ticker, {})
@@ -166,17 +178,32 @@ def build_html(quotes, macro, chart_data, analysis):
     macro_html    = "".join(macro_row(t) for t in MACRO_TICKERS)
     chart_json    = json.dumps(chart_data)
  
-    # JS written as plain string to avoid f-string brace conflicts
     js = """
-const chartData=JSON_DATA;
-const labels=chartData.map(d=>d.date);
-const prices=chartData.map(d=>d.close);
-const mn=Math.min(...prices),mx=Math.max(...prices);
-const ctx=document.getElementById('chart').getContext('2d');
-const grad=ctx.createLinearGradient(0,0,0,120);
-grad.addColorStop(0,'rgba(0,255,136,0.25)');
-grad.addColorStop(1,'rgba(0,255,136,0)');
-new Chart(ctx,{type:'line',data:{labels,datasets:[{data:prices,borderColor:'#00ff88',borderWidth:2,backgroundColor:grad,fill:true,tension:0.3,pointRadius:0,pointHoverRadius:4}]},options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'$'+c.parsed.y.toFixed(2)}}},scales:{x:{display:false},y:{display:true,min:mn*.995,max:mx*1.005,grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#4a5a6a',font:{size:10},callback:v=>'$'+v.toFixed(0)}}}}});
+const chartData = JSON_DATA;
+const labels = chartData.map(d => d.date);
+const prices = chartData.map(d => d.close);
+if (prices.length > 0) {
+  const mn = Math.min(...prices), mx = Math.max(...prices);
+  const ctx = document.getElementById('chart').getContext('2d');
+  const grad = ctx.createLinearGradient(0, 0, 0, 120);
+  grad.addColorStop(0, 'rgba(0,255,136,0.25)');
+  grad.addColorStop(1, 'rgba(0,255,136,0)');
+  new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets: [{ data: prices, borderColor: '#00ff88', borderWidth: 2,
+      backgroundColor: grad, fill: true, tension: 0.3, pointRadius: 0, pointHoverRadius: 4 }] },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => '$' + c.parsed.y.toFixed(2) } } },
+      scales: {
+        x: { display: false },
+        y: { display: true, min: mn * 0.995, max: mx * 1.005,
+          grid: { color: 'rgba(255,255,255,0.04)' },
+          ticks: { color: '#4a5a6a', font: { size: 10 }, callback: v => '$' + v.toFixed(0) } }
+      }
+    }
+  });
+}
 """.replace("JSON_DATA", chart_json)
  
     html = f"""<!DOCTYPE html>
@@ -188,7 +215,7 @@ new Chart(ctx,{type:'line',data:{labels,datasets:[{data:prices,borderColor:'#00f
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    :root {{--bg:#080b10;--surface:#0e1318;--border:#1e2730;--text:#c8d6e5;--muted:#4a5a6a;--accent:#00ff88;--red:#ff4466;--gold:#f5c842;--mono:'Space Mono',monospace;--sans:'Syne',sans-serif}}
+    :root {{--bg:#080b10;--border:#1e2730;--text:#c8d6e5;--muted:#4a5a6a;--accent:#00ff88;--gold:#f5c842;--mono:'Space Mono',monospace;--sans:'Syne',sans-serif}}
     *{{box-sizing:border-box;margin:0;padding:0}}
     body{{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:14px;line-height:1.6;min-height:100vh;background-image:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(0,255,136,.07),transparent)}}
     header{{border-bottom:1px solid var(--border);padding:28px 40px 24px;display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap}}
@@ -224,7 +251,7 @@ new Chart(ctx,{type:'line',data:{labels,datasets:[{data:prices,borderColor:'#00f
   <div class="logo">QQQ <span>Daily</span></div>
   <div class="header-right">
     <div class="date">{date_str}</div>
-    <div class="qqq-hero">${qqq.get("close", "--")}</div>
+    <div class="qqq-hero">{qqq_price}</div>
     <div class="qqq-change">{qqq_arrow} {abs(qqq_chg):.2f}% today</div>
   </div>
 </header>
@@ -263,9 +290,9 @@ new Chart(ctx,{type:'line',data:{labels,datasets:[{data:prices,borderColor:'#00f
  
 # ── Main ───────────────────────────────────────────────────────────────────────
 def main():
-    print("Fetching stock quotes...")
+    print("Fetching stock quotes (one at a time)...")
     quotes = fetch_all(list(QQQ_HOLDINGS.keys()))
-    print(f"  Got {len(quotes)} quotes")
+    print(f"  Got {len(quotes)} stock quotes")
  
     print("Fetching macro data...")
     macro = fetch_all(MACRO_TICKERS)
@@ -273,17 +300,18 @@ def main():
  
     print("Fetching 30-day chart...")
     chart = fetch_qqq_30d()
-    print(f"  Got {len(chart)} days")
+    print(f"  Got {len(chart)} days of chart data")
  
     print("Generating AI analysis...")
     analysis = get_analysis(quotes, macro, chart)
-    print("  Done")
+    print("  Analysis complete")
  
     print("Building HTML...")
     html = build_html(quotes, macro, chart, analysis)
     with open("index.html", "w") as f:
         f.write(html)
-    print("index.html written — all done!")
+    print("Done — index.html written!")
  
 if __name__ == "__main__":
     main()
+ 
