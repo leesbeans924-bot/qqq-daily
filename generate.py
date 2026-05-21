@@ -227,16 +227,21 @@ def build_html(quotes, macro, chart_data, analysis):
 
     qqq       = quotes.get("QQQ", {})
     qqq_chg   = qqq.get("change", 0)
-    qqq_color = "#c9a84c" if qqq_chg >= 0 else "#c0392b"
+    qqq_color = "#a78bfa" if qqq_chg >= 0 else "#f87171"
     qqq_arrow = "▲" if qqq_chg >= 0 else "▼"
     qqq_price = f'${qqq.get("close","--")}' if qqq else "$--"
     qqq_sign  = "+" if qqq_chg >= 0 else ""
+    qqq_high  = qqq.get("high", "--")
+    qqq_low   = qqq.get("low",  "--")
+    qqq_prev  = qqq.get("prev", "--")
+    qqq_h52   = qqq.get("h52",  "--")
+    qqq_l52   = qqq.get("l52",  "--")
 
     def stock_row(ticker, name):
         q = quotes.get(ticker, {})
         if not q: return ""
         chg   = q.get("change", 0)
-        color = "#c9a84c" if chg >= 0 else "#c0392b"
+        color = "#a78bfa" if chg >= 0 else "#f87171"
         arrow = "▲" if chg >= 0 else "▼"
         sign  = "+" if chg >= 0 else ""
         return f"""<div class="row">
@@ -251,7 +256,7 @@ def build_html(quotes, macro, chart_data, analysis):
         if not m: return ""
         label = m.get("label", key)
         chg   = m.get("change", 0)
-        color = "#c9a84c" if chg >= 0 else "#c0392b"
+        color = "#a78bfa" if chg >= 0 else "#f87171"
         arrow = "▲" if chg >= 0 else "▼"
         sign  = "+" if chg >= 0 else ""
         val   = f'{m["close"]}%' if key in ("TNX", "VIX") else f'${m["close"]}'
@@ -280,30 +285,30 @@ if (raw.length > 1) {
   const mx = Math.max(...prices) * 1.003;
   const ctx = document.getElementById('sparkline').getContext('2d');
   const g = ctx.createLinearGradient(0, 0, 0, 180);
-  g.addColorStop(0, 'rgba(201,168,76,0.15)');
-  g.addColorStop(1, 'rgba(201,168,76,0)');
+  g.addColorStop(0, 'rgba(167,139,250,0.15)');
+  g.addColorStop(1, 'rgba(167,139,250,0)');
   new Chart(ctx, {
     type: 'line',
-    data: { labels, datasets: [{ data: prices, borderColor: '#c9a84c',
+    data: { labels, datasets: [{ data: prices, borderColor: '#a78bfa',
       borderWidth: 1.5, backgroundColor: g, fill: true,
       tension: 0.4, pointRadius: 0, pointHoverRadius: 5,
-      pointHoverBackgroundColor: '#c9a84c' }] },
+      pointHoverBackgroundColor: '#a78bfa' }] },
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: {
         legend: { display: false },
         tooltip: {
           callbacks: { label: c => '$' + c.parsed.y.toFixed(2) },
-          backgroundColor: '#12100e', titleColor: '#6b5e3e',
-          bodyColor: '#c9a84c', borderColor: '#2a2318', borderWidth: 1,
+          backgroundColor: '#0d0e12', titleColor: '#7880a8',
+          bodyColor: '#a78bfa', borderColor: '#252838', borderWidth: 1,
           padding: 10
         }
       },
       scales: {
         x: { display: false },
         y: { min: mn, max: mx, display: true,
-          grid: { color: 'rgba(201,168,76,0.06)', drawBorder: false },
-          ticks: { color: '#5a4e36', font: { size: 10, family: 'Cormorant Garamond' },
+          grid: { color: 'rgba(167,139,250,0.06)', drawBorder: false },
+          ticks: { color: '#7880a8', font: { size: 10, family: 'Cormorant Garamond' },
             callback: v => '$' + v.toFixed(0), maxTicksLimit: 4 }
         }
       }
@@ -323,17 +328,17 @@ if (raw.length > 1) {
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     :root {{
-      --bg:      #0a0905;
-      --surface: #0f0c08;
-      --card:    #13100c;
-      --border:  #1e1a12;
-      --border2: #2a2318;
-      --text:    #c8b99a;
-      --dim:     #7a6a52;
-      --gold:    #c9a84c;
-      --gold2:   #f0deb0;
-      --red:     #c0392b;
-      --white:   #f0e8d8;
+      --bg:      #0d0e12;
+      --surface: #11131a;
+      --card:    #11131a;
+      --border:  #1c1f2a;
+      --border2: #252838;
+      --text:    #c0c8e8;
+      --dim:     #7880a8;
+      --gold:    #a78bfa;
+      --gold2:   #c0c8e8;
+      --red:     #f87171;
+      --white:   #e8ecf8;
       --serif:   'Cormorant Garamond', Georgia, serif;
       --sans:    'Inter', sans-serif;
       --mono:    'Space Mono', monospace;
@@ -347,8 +352,8 @@ if (raw.length > 1) {
       line-height: 1.6;
       min-height: 100vh;
       background-image:
-        radial-gradient(ellipse 120% 60% at 50% 0%, rgba(201,168,76,0.04) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 40% at 100% 100%, rgba(201,168,76,0.02) 0%, transparent 50%);
+        radial-gradient(ellipse 120% 60% at 50% 0%, rgba(167,139,250,0.04) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 100% 100%, rgba(167,139,250,0.02) 0%, transparent 50%);
     }}
 
     /* ── MASTHEAD ── */
@@ -381,7 +386,7 @@ if (raw.length > 1) {
       height: 1px;
       background: var(--gold);
       margin: 10px 0;
-      opacity: 0.5;
+      opacity: 0.4;
     }}
     .brand-sub {{
       font-family: var(--sans);
@@ -469,7 +474,7 @@ if (raw.length > 1) {
       font-family: var(--serif);
       font-size: 20px;
       font-weight: 400;
-      color: #f0e8d8;
+      color: #e8ecf8;
       line-height: 1.45;
     }}
 
@@ -557,7 +562,7 @@ if (raw.length > 1) {
     .co {{
       font-size: 11px;
       font-weight: 300;
-      color: #8a7a62;
+      color: #7880a8;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -628,7 +633,7 @@ if (raw.length > 1) {
       font-family: var(--sans);
       font-size: 14px;
       font-weight: 400;
-      color: #d4c4a8;
+      color: #c0c8e8;
       line-height: 1.75;
       padding: 11px 0 11px 20px;
       border-bottom: 1px solid var(--border);
@@ -647,7 +652,7 @@ if (raw.length > 1) {
       font-family: var(--sans);
       font-size: 14px;
       font-weight: 400;
-      color: #d4c4a8;
+      color: #c0c8e8;
       line-height: 1.75;
       margin-bottom: 12px;
     }}
@@ -709,17 +714,17 @@ if (raw.length > 1) {
       <div class="price-delta" style="color:{qqq_color}">{qqq_arrow} {qqq_sign}{abs(qqq_chg):.2f}%</div>
     </div>
     <div class="price-stats">
-      <span class="pstat"><span class="pstat-l">H</span> ${{qqq.get('high','--')}}</span>
+      <span class="pstat"><span class="pstat-l">H</span> ${qqq_high}</span>
       <span class="pstat-sep">·</span>
-      <span class="pstat"><span class="pstat-l">L</span> ${{qqq.get('low','--')}}</span>
+      <span class="pstat"><span class="pstat-l">L</span> ${qqq_low}</span>
       <span class="pstat-sep">·</span>
-      <span class="pstat"><span class="pstat-l">Prev</span> ${{qqq.get('prev','--')}}</span>
+      <span class="pstat"><span class="pstat-l">Prev</span> ${qqq_prev}</span>
       <span class="pstat-sep">·</span>
-      <span class="pstat"><span class="pstat-l">52W H</span> ${{qqq.get('h52','--')}}</span>
+      <span class="pstat"><span class="pstat-l">52W H</span> ${qqq_h52}</span>
       <span class="pstat-sep">·</span>
-      <span class="pstat"><span class="pstat-l">52W L</span> ${{qqq.get('l52','--')}}</span>
+      <span class="pstat"><span class="pstat-l">52W L</span> ${qqq_l52}</span>
       <span class="pstat-sep">·</span>
-      <span class="pstat"><span class="pstat-l">RSI</span> {{rsi_str}}</span>
+      <span class="pstat"><span class="pstat-l">RSI 14</span> {rsi_str}</span>
     </div>
   </div>
   <div class="masthead-thesis">
