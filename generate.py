@@ -1,12 +1,16 @@
-import yfinance as yf
 import anthropic
+import requests
 import json
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 import pytz
 import re
  
 # ── Config ────────────────────────────────────────────────────────────────────
+import os
+FINNHUB_KEY = os.environ["FINNHUB_API_KEY"]
+FINNHUB_URL = "https://finnhub.io/api/v1"
+ 
 QQQ_HOLDINGS = {
     "QQQ":  "QQQ ETF",
     "NVDA": "NVIDIA",
@@ -20,46 +24,103 @@ QQQ_HOLDINGS = {
     "COST": "Costco",
     "NFLX": "Netflix",
 }
-MACRO_TICKERS = ["^TNX", "^VIX", "CL=F"]
-MACRO_LABELS  = {"^TNX": "10Y Yield", "^VIX": "VIX", "CL=F": "Crude Oil"}
  
-# ── Data fetching — one ticker at a time with retries ─────────────────────────
-def fetch_one(ticker, retries=3):
-    for attempt in range(retries):
-        try:
-            t    = yf.Ticker(ticker)
-            hist = t.fast_info
-            # fast_info gives last price directly
-            price    = round(float(t.fast_info["last_price"]), 2)
-            prev     = round(float(t.fast_info["previous_close"]), 2)
-            change   = round(((price - prev) / prev) * 100, 2)
-            return {"close": price, "change": change, "prev": prev}
-        except Exception as e:
-            print(f"  Attempt {attempt+1} failed for {ticker}: {e}")
-            time.sleep(2)
+MACRO_TICKERS = {
+    "^TNX":  "10Y Yield",
+    "^VIX":  "VIX",
+    "CL=F":  "Crude Oil",
+}
+ 
+# Finnhub symbol mapping for macro
+FINNHUB_MACRO = {
+    "^VIX": "CBOE:VIX",
+    "CL=F": "OANDA:BCO_USD",  # Brent crude proxy
+}
+ 
+# ── Finnhub quote fetcher ─────────────────────────────────────────────────────
+def fh_quote(symbol):
+    """Fetch a single quote from Finnhub."""
+    try:
+        r = requests.get(
+            f"{FINNHUB_URL}/quote",
+            params={"symbol": symbol, "token": FINNHUB_KEY},
+            timeout=10
+        )
+        d = r.json()
+        if d.get("c") and d["c"] != 0:
+            price = round(float(d["c"]), 2)
+            prev  = round(float(d["pc"]), 2)
+            chg   = round(((price - prev) / prev) * 100, 2) if prev else 0
+            return {"close": price, "change": chg, "prev": prev}
+    except Exception as e:
+        print(f"  Error fetching {symbol}: {e}")
     return None
  
-def fetch_all(tickers):
+def fetch_stocks():
     result = {}
-    for t in tickers:
-        print(f"  Fetching {t}...")
-        q = fetch_one(t)
+    for ticker in QQQ_HOLDINGS:
+        print(f"  {ticker}...")
+        q = fh_quote(ticker)
         if q:
-            result[t] = q
-        time.sleep(0.5)   # gentle rate limiting
+            result[ticker] = q
+        time.sleep(0.3)
+    return result
+ 
+def fetch_macro():
+    result = {}
+    # 10Y yield — use FRED (no key needed for this endpoint)
+    try:
+        r = requests.get(
+            "https://query1.finance.yahoo.com/v8/finance/chart/%5ETNX",
+            headers={"User-Agent": "Mozilla/5.0"},
+            timeout=10
+        )
+        data = r.json()
+        meta = data["chart"]["result"][0]["meta"]
+        price = round(float(meta["regularMarketPrice"]), 3)
+        prev  = round(float(meta["chartPreviousClose"]), 3)
+        chg   = round(((price - prev) / prev) * 100, 2) if prev else 0
+        result["^TNX"] = {"close": price, "change": chg}
+        print("  10Y Yield OK")
+    except Exception as e:
+        print(f"  10Y Yield failed: {e}")
+ 
+    # VIX via Finnhub
+    time.sleep(0.3)
+    q = fh_quote("CBOE:VIX")
+    if q:
+        result["^VIX"] = q
+        print("  VIX OK")
+ 
+    # Crude oil via Finnhub
+    time.sleep(0.3)
+    q = fh_quote("OANDA:BCO_USD")
+    if q:
+        result["CL=F"] = q
+        print("  Crude OK")
+ 
     return result
  
 def fetch_qqq_30d():
-    for attempt in range(3):
-        try:
-            df = yf.download("QQQ", period="30d", interval="1d",
-                             auto_adjust=True, progress=False)
-            closes = df["Close"].dropna()
-            return [{"date": d.strftime("%b %d"), "close": round(float(c), 2)}
-                    for d, c in zip(closes.index, closes)]
-        except Exception as e:
-            print(f"  Chart attempt {attempt+1} failed: {e}")
-            time.sleep(2)
+    """30-day QQQ history via Finnhub candles."""
+    try:
+        now   = int(time.time())
+        past  = now - (35 * 24 * 3600)
+        r = requests.get(
+            f"{FINNHUB_URL}/stock/candle",
+            params={"symbol": "QQQ", "resolution": "D",
+                    "from": past, "to": now, "token": FINNHUB_KEY},
+            timeout=10
+        )
+        d = r.json()
+        if d.get("s") == "ok":
+            return [
+                {"date": datetime.fromtimestamp(t).strftime("%b %-d"),
+                 "close": round(float(c), 2)}
+                for t, c in zip(d["t"], d["c"])
+            ]
+    except Exception as e:
+        print(f"  Chart error: {e}")
     return []
  
 # ── Claude analysis ───────────────────────────────────────────────────────────
@@ -73,13 +134,14 @@ def get_analysis(quotes, macro, chart_data):
     holdings_text = "\n".join(
         fmt(QQQ_HOLDINGS.get(t, t), q)
         for t, q in quotes.items() if t in QQQ_HOLDINGS
-    ) or "  (no data available)"
+    ) or "  (data unavailable)"
  
+    macro_labels = {"^TNX": "10Y Yield", "^VIX": "VIX", "CL=F": "Crude Oil"}
     macro_text = "\n".join(
-        fmt(MACRO_LABELS.get(t, t), q) for t, q in macro.items()
-    ) or "  (no data available)"
+        fmt(macro_labels.get(t, t), q) for t, q in macro.items()
+    ) or "  (data unavailable)"
  
-    prices_tail = [d["close"] for d in chart_data[-10:]] if chart_data else []
+    prices_tail = [d["close"] for d in chart_data[-10:]]
  
     prompt = f"""You are a sharp market analyst writing the QQQ Daily Briefing for serious retail investors.
  
@@ -159,9 +221,8 @@ def build_html(quotes, macro, chart_data, analysis):
                 f'<span class="change" style="color:{color}">{arrow} {abs(chg):.2f}%</span>'
                 f'</div>')
  
-    def macro_row(ticker):
-        q     = macro.get(ticker, {})
-        label = MACRO_LABELS.get(ticker, ticker)
+    def macro_row(ticker, label):
+        q = macro.get(ticker, {})
         if not q: return ""
         chg   = q.get("change", 0)
         color = "#00ff88" if chg >= 0 else "#ff4466"
@@ -175,7 +236,9 @@ def build_html(quotes, macro, chart_data, analysis):
                 f'</div>')
  
     holdings_html = "".join(holding_row(t, n) for t, n in QQQ_HOLDINGS.items() if t != "QQQ")
-    macro_html    = "".join(macro_row(t) for t in MACRO_TICKERS)
+    macro_html    = (macro_row("^TNX", "10Y Yield") +
+                     macro_row("^VIX", "VIX") +
+                     macro_row("CL=F", "Crude Oil"))
     chart_json    = json.dumps(chart_data)
  
     js = """
@@ -190,23 +253,26 @@ if (prices.length > 0) {
   grad.addColorStop(1, 'rgba(0,255,136,0)');
   new Chart(ctx, {
     type: 'line',
-    data: { labels, datasets: [{ data: prices, borderColor: '#00ff88', borderWidth: 2,
-      backgroundColor: grad, fill: true, tension: 0.3, pointRadius: 0, pointHoverRadius: 4 }] },
+    data: { labels, datasets: [{ data: prices, borderColor: '#00ff88',
+      borderWidth: 2, backgroundColor: grad, fill: true,
+      tension: 0.3, pointRadius: 0, pointHoverRadius: 4 }] },
     options: {
       responsive: true,
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => '$' + c.parsed.y.toFixed(2) } } },
+      plugins: { legend: { display: false },
+        tooltip: { callbacks: { label: c => '$' + c.parsed.y.toFixed(2) } } },
       scales: {
         x: { display: false },
         y: { display: true, min: mn * 0.995, max: mx * 1.005,
           grid: { color: 'rgba(255,255,255,0.04)' },
-          ticks: { color: '#4a5a6a', font: { size: 10 }, callback: v => '$' + v.toFixed(0) } }
+          ticks: { color: '#4a5a6a', font: { size: 10 },
+            callback: v => '$' + v.toFixed(0) } }
       }
     }
   });
 }
 """.replace("JSON_DATA", chart_json)
  
-    html = f"""<!DOCTYPE html>
+    return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -281,30 +347,29 @@ if (prices.length > 0) {
 </div>
 <div class="updated">
   <span>Generated at {time_str}</span>
-  <span>Data via Yahoo Finance · Analysis via Claude</span>
+  <span>Data via Finnhub · Analysis via Claude</span>
 </div>
 <script>{js}</script>
 </body>
 </html>"""
-    return html
  
 # ── Main ───────────────────────────────────────────────────────────────────────
 def main():
-    print("Fetching stock quotes (one at a time)...")
-    quotes = fetch_all(list(QQQ_HOLDINGS.keys()))
-    print(f"  Got {len(quotes)} stock quotes")
+    print("Fetching stock quotes via Finnhub...")
+    quotes = fetch_stocks()
+    print(f"  Got {len(quotes)} quotes")
  
     print("Fetching macro data...")
-    macro = fetch_all(MACRO_TICKERS)
+    macro = fetch_macro()
     print(f"  Got {len(macro)} macro quotes")
  
     print("Fetching 30-day chart...")
     chart = fetch_qqq_30d()
-    print(f"  Got {len(chart)} days of chart data")
+    print(f"  Got {len(chart)} days")
  
     print("Generating AI analysis...")
     analysis = get_analysis(quotes, macro, chart)
-    print("  Analysis complete")
+    print("  Done")
  
     print("Building HTML...")
     html = build_html(quotes, macro, chart, analysis)
