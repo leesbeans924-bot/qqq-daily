@@ -247,7 +247,7 @@ def build_html(quotes, macro, chart_data, analysis):
     # RSI from chart data
     chart_prices = [d["close"] for d in chart_data]
     rsi_val = calc_rsi(chart_prices)
-    rsi_str  = f"{rsi_str}" if rsi_val else "--"
+    rsi_str  = f"{rsi_val}" if rsi_val else "--"
 
     headline = extract_section(analysis, "SECTION 1 - HEADLINE")
     movers   = extract_section(analysis, "SECTION 2 - MOVERS")
