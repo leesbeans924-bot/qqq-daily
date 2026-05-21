@@ -9,17 +9,17 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     :root {
-      --bg:      #0a0905;
-      --surface: #0f0c08;
-      --card:    #13100c;
-      --border:  #1e1a12;
-      --border2: #2a2318;
-      --text:    #c8b99a;
-      --dim:     #7a6a52;
-      --gold:    #c9a84c;
-      --gold2:   #f0deb0;
-      --red:     #c0392b;
-      --white:   #f0e8d8;
+      --bg:      #0d0e12;
+      --surface: #11131a;
+      --card:    #11131a;
+      --border:  #1c1f2a;
+      --border2: #252838;
+      --text:    #c0c8e8;
+      --dim:     #7880a8;
+      --gold:    #a78bfa;
+      --gold2:   #c0c8e8;
+      --red:     #f87171;
+      --white:   #e8ecf8;
       --serif:   'Cormorant Garamond', Georgia, serif;
       --sans:    'Inter', sans-serif;
       --mono:    'Space Mono', monospace;
@@ -33,8 +33,8 @@
       line-height: 1.6;
       min-height: 100vh;
       background-image:
-        radial-gradient(ellipse 120% 60% at 50% 0%, rgba(201,168,76,0.04) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 40% at 100% 100%, rgba(201,168,76,0.02) 0%, transparent 50%);
+        radial-gradient(ellipse 120% 60% at 50% 0%, rgba(167,139,250,0.04) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 100% 100%, rgba(167,139,250,0.02) 0%, transparent 50%);
     }
 
     /* ── MASTHEAD ── */
@@ -67,7 +67,7 @@
       height: 1px;
       background: var(--gold);
       margin: 10px 0;
-      opacity: 0.5;
+      opacity: 0.4;
     }
     .brand-sub {
       font-family: var(--sans);
@@ -155,7 +155,7 @@
       font-family: var(--serif);
       font-size: 20px;
       font-weight: 400;
-      color: #f0e8d8;
+      color: #e8ecf8;
       line-height: 1.45;
     }
 
@@ -243,7 +243,7 @@
     .co {
       font-size: 11px;
       font-weight: 300;
-      color: #8a7a62;
+      color: #7880a8;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -314,7 +314,7 @@
       font-family: var(--sans);
       font-size: 14px;
       font-weight: 400;
-      color: #d4c4a8;
+      color: #c0c8e8;
       line-height: 1.75;
       padding: 11px 0 11px 20px;
       border-bottom: 1px solid var(--border);
@@ -333,7 +333,7 @@
       font-family: var(--sans);
       font-size: 14px;
       font-weight: 400;
-      color: #d4c4a8;
+      color: #c0c8e8;
       line-height: 1.75;
       margin-bottom: 12px;
     }
@@ -392,25 +392,25 @@
     <div class="price-eyebrow">QQQ · THURSDAY · MAY 21, 2026</div>
     <div class="price-row">
       <div class="price-num">$714.51</div>
-      <div class="price-delta" style="color:#c9a84c">▲ +0.19%</div>
+      <div class="price-delta" style="color:#a78bfa">▲ +0.19%</div>
     </div>
     <div class="price-stats">
-      <span class="pstat"><span class="pstat-l">H</span> ${qqq.get('high','--')}</span>
+      <span class="pstat"><span class="pstat-l">H</span> $717.12</span>
       <span class="pstat-sep">·</span>
-      <span class="pstat"><span class="pstat-l">L</span> ${qqq.get('low','--')}</span>
+      <span class="pstat"><span class="pstat-l">L</span> $706.77</span>
       <span class="pstat-sep">·</span>
-      <span class="pstat"><span class="pstat-l">Prev</span> ${qqq.get('prev','--')}</span>
+      <span class="pstat"><span class="pstat-l">Prev</span> $713.15</span>
       <span class="pstat-sep">·</span>
-      <span class="pstat"><span class="pstat-l">52W H</span> ${qqq.get('h52','--')}</span>
+      <span class="pstat"><span class="pstat-l">52W H</span> $722.03</span>
       <span class="pstat-sep">·</span>
-      <span class="pstat"><span class="pstat-l">52W L</span> ${qqq.get('l52','--')}</span>
+      <span class="pstat"><span class="pstat-l">52W L</span> $505.58</span>
       <span class="pstat-sep">·</span>
-      <span class="pstat"><span class="pstat-l">RSI</span> {rsi_str}</span>
+      <span class="pstat"><span class="pstat-l">RSI 14</span> --</span>
     </div>
   </div>
   <div class="masthead-thesis">
     <div class="headline-kicker">Today's Thesis</div>
-    <div class="headline-text">Tech divergence persists as the Nasdaq treads water while defensive plays and mega-cap heavyweights pull in opposite directions on a risk-off Tuesday.</div>
+    <div class="headline-text">QQQ holds steady as mega-cap resilience fights back against semiconductor weakness and rate pressure.</div>
   </div>
 </div>
 
@@ -427,52 +427,52 @@
           <span class="sym">NVDA</span>
           <span class="co">NVIDIA</span>
           <span class="px">$219.51</span>
-          <span class="ch" style="color:#c0392b">▼1.77%</span>
+          <span class="ch" style="color:#f87171">▼1.77%</span>
         </div><div class="row">
           <span class="sym">AAPL</span>
           <span class="co">Apple</span>
           <span class="px">$304.99</span>
-          <span class="ch" style="color:#c9a84c">▲+0.91%</span>
+          <span class="ch" style="color:#a78bfa">▲+0.91%</span>
         </div><div class="row">
           <span class="sym">MSFT</span>
           <span class="co">Microsoft</span>
           <span class="px">$419.09</span>
-          <span class="ch" style="color:#c0392b">▼0.47%</span>
+          <span class="ch" style="color:#f87171">▼0.47%</span>
         </div><div class="row">
           <span class="sym">AMZN</span>
           <span class="co">Amazon</span>
           <span class="px">$268.46</span>
-          <span class="ch" style="color:#c9a84c">▲+1.30%</span>
+          <span class="ch" style="color:#a78bfa">▲+1.30%</span>
         </div><div class="row">
           <span class="sym">GOOGL</span>
           <span class="co">Alphabet</span>
           <span class="px">$387.66</span>
-          <span class="ch" style="color:#c0392b">▼0.32%</span>
+          <span class="ch" style="color:#f87171">▼0.32%</span>
         </div><div class="row">
           <span class="sym">META</span>
           <span class="co">Meta</span>
           <span class="px">$607.38</span>
-          <span class="ch" style="color:#c9a84c">▲+0.38%</span>
+          <span class="ch" style="color:#a78bfa">▲+0.38%</span>
         </div><div class="row">
           <span class="sym">TSLA</span>
           <span class="co">Tesla</span>
           <span class="px">$417.85</span>
-          <span class="ch" style="color:#c9a84c">▲+0.14%</span>
+          <span class="ch" style="color:#a78bfa">▲+0.14%</span>
         </div><div class="row">
           <span class="sym">AVGO</span>
           <span class="co">Broadcom</span>
           <span class="px">$414.57</span>
-          <span class="ch" style="color:#c0392b">▼0.76%</span>
+          <span class="ch" style="color:#f87171">▼0.76%</span>
         </div><div class="row">
           <span class="sym">COST</span>
           <span class="co">Costco</span>
           <span class="px">$1050.45</span>
-          <span class="ch" style="color:#c0392b">▼2.19%</span>
+          <span class="ch" style="color:#f87171">▼2.19%</span>
         </div><div class="row">
           <span class="sym">NFLX</span>
           <span class="co">Netflix</span>
           <span class="px">$89.3</span>
-          <span class="ch" style="color:#c9a84c">▲+1.37%</span>
+          <span class="ch" style="color:#a78bfa">▲+1.37%</span>
         </div>
   </div>
   <div class="col">
@@ -481,12 +481,12 @@
           <span class="sym">10Y Yield</span>
           <span class="co"></span>
           <span class="px">4.586%</span>
-          <span class="ch" style="color:#c9a84c">▲+0.31%</span>
+          <span class="ch" style="color:#a78bfa">▲+0.31%</span>
         </div><div class="row">
           <span class="sym">VIX</span>
           <span class="co"></span>
           <span class="px">16.76%</span>
-          <span class="ch" style="color:#c0392b">▼3.90%</span>
+          <span class="ch" style="color:#f87171">▼3.90%</span>
         </div>
     <div class="chart-container">
       <div class="col-label">30-Day Price</div>
@@ -498,19 +498,19 @@
 <div class="analysis">
   <div class="a-col">
     <div class="a-label">What Moved QQQ Today</div>
-    <ul><li>Costco tumbled 2.19 percent, the day's worst performer, as big-box retail faces persistent margin pressure and consumer spending caution ahead of holiday season guidance.</li><li>NVIDIA sold off 1.77 percent despite broader chip strength, signaling profit-taking after the AI chip rally and growing competition anxiety in data center markets.</li><li>Netflix jumped 1.37 percent and Amazon gained 1.3 percent, both streaming and e-commerce plays benefiting from a 3.9 percent VIX drop that favors growth with pricing power.</li><li>Broadcom fell 0.76 percent alongside semiconductor weakness, though the decline was modest, suggesting institutional investors remain cautious on chip capex cycles.</li><li>The 10-year yield climbed 31 basis points to 4.586 percent, a meaningful move that pressures duration-heavy growth stocks while benefiting financials sitting outside the QQQ basket.</li></ul>
+    <ul><li>NVIDIA down 1.77 pct amid ongoing chip cycle concerns and potential profit-taking as investors reassess AI infrastructure spending timelines.</li><li>Costco dropped 2.19 pct, the day's worst performer, signaling consumer caution as higher rates pressure discretionary retail spending.</li><li>Amazon gained 1.3 pct, outperforming peers on AWS momentum and the market's rotation toward profitable cloud infrastructure plays over pure growth.</li><li>Netflix climbed 1.37 pct as streaming valuation multiples stabilize and subscriber growth expectations remain intact despite macro headwinds.</li><li>10Y yield jumped 31 basis points to 4.586 pct, reflecting Fed rate expectations and inflation concerns that typically pressure growth stocks but today were offset by VIX compression.</li></ul>
   </div>
   <div class="a-col">
     <div class="a-label">Chart Pattern</div>
-    <p>Data for the 30-day price trail is unavailable, preventing pattern analysis. However, the QQQ's modest 0.19 percent gain today against mixed underlying holdings suggests consolidation behavior typical of markets reassessing Fed trajectory after recent yield volatility. Watch for a break above or below the current range to determine whether the index is building a base or entering a distribution phase.</p>
+    <p>Insufficient 30-day data provided to identify a technical pattern. With historical price action, watch for QQQ's support near the 350-day moving average and resistance at recent highs. The index's ability to hold gains despite NVIDIA weakness suggests institutional buyers remain engaged.</p>
     <hr class="a-divider">
     <div class="a-label">What to Watch Tomorrow</div>
-    <ul><li>Federal Reserve commentary or economic data could trigger the next leg: a bullish scenario sees yields stabilizing and rotation back into mega-cap growth; bearish scenario shows fresh inflation concerns pushing rates higher, deepening the tech selloff and triggering a flight to commodities or bonds.</li><li>Apple earnings season momentum carries forward with potential beats from services: bullish case sees strong iPhone 16 demand data and services growth re-rating AAPL as defensive; bearish case reveals consumer weakness in emerging markets, spooking the entire consumer discretionary complex.</li><li>Nvidia guidance or AI commentary could serve as a capitulation or accumulation signal: bullish scenario shows management confidence in sustained enterprise spending, attracting short covering; bearish scenario reveals margin compression or demand softness, re-validating today's 1.77 percent decline as the start of a deeper correction.</li></ul>
+    <ul><li>Earnings season intensity: Bullish case is beat estimates drive surprise rallies in unpaired mega-caps; bearish case is guidance cuts force multiple compression across high-beta names.</li><li>Fed speakers and inflation data: Bullish case is dovish commentary reverses yield gains and de-risks growth valuations; bearish case is sticky inflation forces another hawkish pivot.</li><li>Semiconductor sector stabilization: Bullish case is NVIDIA reverses and drags chip stocks higher on bargain hunting; bearish case is further weakness signals AI capex cycle concerns are justified.</li></ul>
   </div>
 </div>
 
 <div class="colophon">
-  <span class="colophon-left">Generated 7:10 PM ET</span>
+  <span class="colophon-left">Generated 7:22 PM ET</span>
   <span class="colophon-right">Data: Finnhub &nbsp;·&nbsp; Analysis: Claude AI</span>
 </div>
 
@@ -523,30 +523,30 @@ if (raw.length > 1) {
   const mx = Math.max(...prices) * 1.003;
   const ctx = document.getElementById('sparkline').getContext('2d');
   const g = ctx.createLinearGradient(0, 0, 0, 180);
-  g.addColorStop(0, 'rgba(201,168,76,0.15)');
-  g.addColorStop(1, 'rgba(201,168,76,0)');
+  g.addColorStop(0, 'rgba(167,139,250,0.15)');
+  g.addColorStop(1, 'rgba(167,139,250,0)');
   new Chart(ctx, {
     type: 'line',
-    data: { labels, datasets: [{ data: prices, borderColor: '#c9a84c',
+    data: { labels, datasets: [{ data: prices, borderColor: '#a78bfa',
       borderWidth: 1.5, backgroundColor: g, fill: true,
       tension: 0.4, pointRadius: 0, pointHoverRadius: 5,
-      pointHoverBackgroundColor: '#c9a84c' }] },
+      pointHoverBackgroundColor: '#a78bfa' }] },
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: {
         legend: { display: false },
         tooltip: {
           callbacks: { label: c => '$' + c.parsed.y.toFixed(2) },
-          backgroundColor: '#12100e', titleColor: '#6b5e3e',
-          bodyColor: '#c9a84c', borderColor: '#2a2318', borderWidth: 1,
+          backgroundColor: '#0d0e12', titleColor: '#7880a8',
+          bodyColor: '#a78bfa', borderColor: '#252838', borderWidth: 1,
           padding: 10
         }
       },
       scales: {
         x: { display: false },
         y: { min: mn, max: mx, display: true,
-          grid: { color: 'rgba(201,168,76,0.06)', drawBorder: false },
-          ticks: { color: '#5a4e36', font: { size: 10, family: 'Cormorant Garamond' },
+          grid: { color: 'rgba(167,139,250,0.06)', drawBorder: false },
+          ticks: { color: '#7880a8', font: { size: 10, family: 'Cormorant Garamond' },
             callback: v => '$' + v.toFixed(0), maxTicksLimit: 4 }
         }
       }
