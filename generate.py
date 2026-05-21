@@ -6,10 +6,10 @@ import re
 from datetime import datetime
 import pytz
 import os
- 
+
 FINNHUB_KEY = os.environ["FINNHUB_API_KEY"]
 FINNHUB_URL = "https://finnhub.io/api/v1"
- 
+
 QQQ_HOLDINGS = {
     "QQQ":  "Invesco QQQ",
     "NVDA": "NVIDIA",
@@ -23,8 +23,8 @@ QQQ_HOLDINGS = {
     "COST": "Costco",
     "NFLX": "Netflix",
 }
- 
-def fh_quote(symbol):
+
+def fh_quote(symbol, extended=False):
     try:
         r = requests.get(f"{FINNHUB_URL}/quote",
                          params={"symbol": symbol, "token": FINNHUB_KEY},
@@ -34,21 +34,48 @@ def fh_quote(symbol):
             price = round(float(d["c"]), 2)
             prev  = round(float(d["pc"]), 2)
             chg   = round(((price - prev) / prev) * 100, 2) if prev else 0
-            return {"close": price, "change": chg}
+            q = {"close": price, "change": chg, "prev": prev}
+            if extended:
+                q["high"]  = round(float(d.get("h", 0)), 2)
+                q["low"]   = round(float(d.get("l", 0)), 2)
+                q["h52"]   = round(float(d.get("h", 0)), 2)
+                q["l52"]   = round(float(d.get("l", 0)), 2)
+            return q
     except Exception as e:
         print(f"  Error {symbol}: {e}")
     return None
- 
+
+def fh_metric(symbol):
+    """Fetch 52-week high/low from Finnhub basic financials."""
+    try:
+        r = requests.get(f"{FINNHUB_URL}/stock/metric",
+                         params={"symbol": symbol, "metric": "all", "token": FINNHUB_KEY},
+                         timeout=10)
+        d = r.json().get("metric", {})
+        return {
+            "h52": round(float(d.get("52WeekHigh", 0)), 2),
+            "l52": round(float(d.get("52WeekLow", 0)), 2),
+            "vol": d.get("10DayAverageTradingVolume", None),
+        }
+    except:
+        return {}
+
 def fetch_stocks():
     result = {}
     for ticker in QQQ_HOLDINGS:
         print(f"  {ticker}...")
-        q = fh_quote(ticker)
+        q = fh_quote(ticker, extended=(ticker == "QQQ"))
         if q:
             result[ticker] = q
         time.sleep(0.4)
+    # Fetch 52w range and avg volume for QQQ separately
+    print("  QQQ metrics...")
+    m = fh_metric("QQQ")
+    if m and "QQQ" in result:
+        result["QQQ"].update(m)
+    time.sleep(0.4)
     return result
- 
+
 def fetch_macro():
     result = {}
     for sym, label, key in [
@@ -76,7 +103,7 @@ def fetch_macro():
         result["OIL"] = q
         print("  Crude OK")
     return result
- 
+
 def fetch_qqq_30d():
     now  = int(time.time())
     past = now - (35 * 24 * 3600)
@@ -93,7 +120,7 @@ def fetch_qqq_30d():
     except Exception as e:
         print(f"  Chart error: {e}")
     return []
- 
+
 def get_analysis(quotes, macro, chart_data):
     client = anthropic.Anthropic()
     def fmt(label, q):
@@ -106,29 +133,29 @@ def get_analysis(quotes, macro, chart_data):
     macro_lines = "\n".join(fmt(v["label"], v) for v in macro.values()) or "  (unavailable)"
     prices = [d["close"] for d in chart_data[-10:]]
     prompt = f"""You are a sharp market analyst writing the QQQ Daily Briefing for serious retail investors.
- 
+
 HOLDINGS:
 {holdings_lines}
- 
+
 MACRO:
 {macro_lines}
- 
+
 30-DAY QQQ PRICE TRAIL (oldest to newest): {prices}
- 
+
 Write a concise briefing in exactly four sections. No markdown — plain text only. No asterisks or symbols.
- 
+
 SECTION 1 - HEADLINE
 One punchy sentence capturing today's dominant theme.
- 
+
 SECTION 2 - MOVERS
 5 bullet points. Each starts with a dash. Stock or macro item, its move, and the specific reason why.
- 
+
 SECTION 3 - CHART
 2-3 sentences on the 30-day price pattern. Name the pattern. State what it suggests next.
- 
+
 SECTION 4 - TOMORROW
 3 bullet points. Each starts with a dash. Specific catalysts with a bullish and bearish scenario for each.
- 
+
 Plain sentences only. No markdown. No asterisks."""
     msg = client.messages.create(
         model="claude-haiku-4-5-20251001",
@@ -136,12 +163,12 @@ Plain sentences only. No markdown. No asterisks."""
         messages=[{"role": "user", "content": prompt}]
     )
     return msg.content[0].text
- 
+
 def strip_md(text):
     text = re.sub(r'\*{1,3}', '', text)
     text = re.sub(r'_{1,3}', '', text)
     return text.strip()
- 
+
 def extract_section(text, header):
     try:
         start = text.index(header) + len(header)
@@ -155,7 +182,7 @@ def extract_section(text, header):
         return strip_md(text[start:end].strip())
     except:
         return ""
- 
+
 def bullets_to_html(text):
     lines = []
     for line in text.split("\n"):
@@ -163,26 +190,48 @@ def bullets_to_html(text):
         if line:
             lines.append(f"<li>{line}</li>")
     return "<ul>" + "".join(lines) + "</ul>" if lines else ""
- 
+
+
+def calc_rsi(prices, period=14):
+    """Calculate RSI from a list of closing prices."""
+    if len(prices) < period + 1:
+        return None
+    deltas = [prices[i] - prices[i-1] for i in range(1, len(prices))]
+    gains  = [d for d in deltas if d > 0]
+    losses = [-d for d in deltas if d < 0]
+    if not gains or not losses:
+        return None
+    avg_gain = sum(gains[-period:]) / period
+    avg_loss = sum(losses[-period:]) / period
+    if avg_loss == 0:
+        return 100.0
+    rs  = avg_gain / avg_loss
+    return round(100 - (100 / (1 + rs)), 1)
+
 def build_html(quotes, macro, chart_data, analysis):
     et       = pytz.timezone("America/New_York")
     now      = datetime.now(et)
     date_str = now.strftime("%B %-d, %Y").upper()
     time_str = now.strftime("%-I:%M %p ET")
     day_str  = now.strftime("%A").upper()
- 
+
+    # RSI from chart data
+    chart_prices = [d["close"] for d in chart_data]
+    rsi_val = calc_rsi(chart_prices)
+    rsi_str  = f"{rsi_str}" if rsi_val else "--"
+
     headline = extract_section(analysis, "SECTION 1 - HEADLINE")
     movers   = extract_section(analysis, "SECTION 2 - MOVERS")
     pattern  = extract_section(analysis, "SECTION 3 - CHART")
     tomorrow = extract_section(analysis, "SECTION 4 - TOMORROW")
- 
+
     qqq       = quotes.get("QQQ", {})
     qqq_chg   = qqq.get("change", 0)
     qqq_color = "#c9a84c" if qqq_chg >= 0 else "#c0392b"
     qqq_arrow = "▲" if qqq_chg >= 0 else "▼"
     qqq_price = f'${qqq.get("close","--")}' if qqq else "$--"
     qqq_sign  = "+" if qqq_chg >= 0 else ""
- 
+
     def stock_row(ticker, name):
         q = quotes.get(ticker, {})
         if not q: return ""
@@ -196,7 +245,7 @@ def build_html(quotes, macro, chart_data, analysis):
           <span class="px">${q['close']}</span>
           <span class="ch" style="color:{color}">{arrow}{sign}{abs(chg):.2f}%</span>
         </div>"""
- 
+
     def macro_row(key):
         m = macro.get(key, {})
         if not m: return ""
@@ -212,16 +261,16 @@ def build_html(quotes, macro, chart_data, analysis):
           <span class="px">{val}</span>
           <span class="ch" style="color:{color}">{arrow}{sign}{abs(chg):.2f}%</span>
         </div>"""
- 
+
     stocks_html = "".join(stock_row(t, n) for t, n in QQQ_HOLDINGS.items() if t != "QQQ")
     macro_html  = macro_row("TNX") + macro_row("VIX") + macro_row("OIL")
     chart_json  = json.dumps(chart_data)
- 
+
     pat_html = "".join(
         f"<p>{strip_md(s.strip())}</p>"
         for s in pattern.split("\n") if s.strip()
     )
- 
+
     js = """
 const raw = JSON_DATA;
 if (raw.length > 1) {
@@ -262,7 +311,7 @@ if (raw.length > 1) {
   });
 }
 """.replace("JSON_DATA", chart_json)
- 
+
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -301,27 +350,26 @@ if (raw.length > 1) {
         radial-gradient(ellipse 120% 60% at 50% 0%, rgba(201,168,76,0.04) 0%, transparent 60%),
         radial-gradient(ellipse 60% 40% at 100% 100%, rgba(201,168,76,0.02) 0%, transparent 50%);
     }}
- 
+
     /* ── MASTHEAD ── */
     .masthead {{
       border-bottom: 1px solid var(--border2);
       padding: 0 56px;
-      display: flex;
+      display: grid;
+      grid-template-columns: 180px 1fr 1fr;
       align-items: stretch;
-      justify-content: space-between;
       gap: 0;
     }}
-    .masthead-left {{
-      padding: 36px 0;
+    .masthead-brand {{
+      padding: 32px 40px 32px 0;
+      border-right: 1px solid var(--border2);
       display: flex;
       flex-direction: column;
       justify-content: center;
-      border-right: 1px solid var(--border2);
-      padding-right: 48px;
     }}
     .brand {{
       font-family: var(--serif);
-      font-size: 42px;
+      font-size: 38px;
       font-weight: 300;
       font-style: italic;
       color: var(--white);
@@ -329,86 +377,102 @@ if (raw.length > 1) {
       line-height: 1;
     }}
     .brand-rule {{
-      width: 48px;
+      width: 40px;
       height: 1px;
       background: var(--gold);
       margin: 10px 0;
-      opacity: 0.6;
+      opacity: 0.5;
     }}
     .brand-sub {{
       font-family: var(--sans);
-      font-size: 9px;
+      font-size: 8px;
       font-weight: 500;
-      letter-spacing: 0.25em;
+      letter-spacing: 0.22em;
       text-transform: uppercase;
       color: var(--dim);
     }}
-    .masthead-center {{
-      flex: 1;
-      padding: 36px 48px;
+    .masthead-price {{
+      padding: 32px 40px;
+      border-right: 1px solid var(--border2);
       display: flex;
       flex-direction: column;
       justify-content: center;
-    }}
-    .headline-text {{
-      font-family: var(--serif);
-      font-size: 22px;
-      font-weight: 400;
-      color: #f5ede0;
-      line-height: 1.4;
-      max-width: 700px;
-    }}
-    .headline-kicker {{
-      font-family: var(--sans);
-      font-size: 9px;
-      font-weight: 600;
-      letter-spacing: 0.25em;
-      text-transform: uppercase;
-      color: var(--gold);
-      margin-bottom: 10px;
-    }}
-    .masthead-right {{
-      padding: 36px 0 36px 48px;
-      border-left: 1px solid var(--border2);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: flex-end;
-      min-width: 200px;
     }}
     .price-eyebrow {{
       font-family: var(--sans);
-      font-size: 9px;
+      font-size: 8px;
       font-weight: 500;
       letter-spacing: 0.2em;
       text-transform: uppercase;
       color: var(--dim);
-      margin-bottom: 8px;
+      margin-bottom: 10px;
+    }}
+    .price-row {{
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+      margin-bottom: 14px;
     }}
     .price-num {{
       font-family: var(--mono);
-      font-size: 40px;
+      font-size: 44px;
       font-weight: 700;
       color: var(--white);
       line-height: 1;
-      letter-spacing: -1px;
+      letter-spacing: -2px;
     }}
     .price-delta {{
       font-family: var(--mono);
-      font-size: 13px;
-      color: {qqq_color};
-      margin-top: 8px;
-      letter-spacing: 0.05em;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
     }}
-    .price-date {{
-      font-family: var(--sans);
-      font-size: 9px;
+    .price-stats {{
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 0;
+      align-items: center;
+    }}
+    .pstat {{
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text);
+    }}
+    .pstat-l {{
       color: var(--dim);
-      letter-spacing: 0.15em;
-      margin-top: 10px;
+      margin-right: 4px;
+      font-size: 9px;
       text-transform: uppercase;
+      letter-spacing: 0.08em;
     }}
- 
+    .pstat-sep {{
+      color: var(--border2);
+      margin: 0 8px;
+      font-size: 12px;
+    }}
+    .masthead-thesis {{
+      padding: 32px 0 32px 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }}
+    .headline-kicker {{
+      font-family: var(--sans);
+      font-size: 8px;
+      font-weight: 600;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 12px;
+    }}
+    .headline-text {{
+      font-family: var(--serif);
+      font-size: 20px;
+      font-weight: 400;
+      color: #f0e8d8;
+      line-height: 1.45;
+    }}
+
     /* ── DATELINE ── */
     .dateline {{
       padding: 10px 56px;
@@ -437,7 +501,7 @@ if (raw.length > 1) {
       text-transform: uppercase;
       color: var(--dim);
     }}
- 
+
     /* ── COLUMNS ── */
     .columns {{
       display: grid;
@@ -472,7 +536,7 @@ if (raw.length > 1) {
       background: var(--gold);
       opacity: 0.5;
     }}
- 
+
     /* ── TICKER ROWS ── */
     .row {{
       display: grid;
@@ -512,7 +576,7 @@ if (raw.length > 1) {
       text-align: right;
       letter-spacing: 0.05em;
     }}
- 
+
     /* ── CHART ── */
     .chart-container {{
       margin-top: 28px;
@@ -521,7 +585,7 @@ if (raw.length > 1) {
       height: 180px;
       margin-top: 10px;
     }}
- 
+
     /* ── ANALYSIS SECTION ── */
     .analysis {{
       display: grid;
@@ -561,11 +625,11 @@ if (raw.length > 1) {
       padding: 0;
     }}
     .a-col li {{
-      font-family: var(--serif);
-      font-size: 15px;
+      font-family: var(--sans);
+      font-size: 14px;
       font-weight: 400;
-      color: var(--text);
-      line-height: 1.65;
+      color: #d4c4a8;
+      line-height: 1.75;
       padding: 11px 0 11px 20px;
       border-bottom: 1px solid var(--border);
       position: relative;
@@ -580,10 +644,10 @@ if (raw.length > 1) {
     }}
     .a-col li:last-child {{ border-bottom: none; }}
     .a-col p {{
-      font-family: var(--serif);
-      font-size: 15px;
+      font-family: var(--sans);
+      font-size: 14px;
       font-weight: 400;
-      color: var(--text);
+      color: #d4c4a8;
       line-height: 1.75;
       margin-bottom: 12px;
     }}
@@ -593,7 +657,7 @@ if (raw.length > 1) {
       border-top: 1px solid var(--border2);
       margin: 28px 0 24px;
     }}
- 
+
     /* ── COLOPHON ── */
     .colophon {{
       padding: 16px 56px;
@@ -615,12 +679,13 @@ if (raw.length > 1) {
       text-transform: uppercase;
       color: var(--dim);
     }}
- 
+
     @media (max-width: 780px) {{
       .masthead, .dateline, .col, .a-col, .colophon {{ padding-left: 20px; padding-right: 20px; }}
-      .masthead {{ flex-direction: column; }}
-      .masthead-left {{ border-right: none; padding-right: 0; border-bottom: 1px solid var(--border2); padding-bottom: 24px; }}
-      .masthead-right {{ border-left: none; padding-left: 0; align-items: flex-start; border-top: 1px solid var(--border2); padding-top: 24px; }}
+      .masthead {{ grid-template-columns: 1fr; }}
+      .masthead-brand {{ border-right: none; padding-right: 0; border-bottom: 1px solid var(--border2); }}
+      .masthead-price {{ border-right: none; border-bottom: 1px solid var(--border2); }}
+      .masthead-thesis {{ padding-left: 0; }}
       .columns, .analysis {{ grid-template-columns: 1fr; }}
       .col + .col, .a-col + .a-col {{ border-left: none; border-top: 1px solid var(--border2); }}
       .price-num {{ font-size: 32px; }}
@@ -630,31 +695,45 @@ if (raw.length > 1) {
   </style>
 </head>
 <body>
- 
+
 <div class="masthead">
-  <div class="masthead-left">
+  <div class="masthead-brand">
     <div class="brand">QQQ Daily</div>
     <div class="brand-rule"></div>
-    <div class="brand-sub">Nasdaq&#8209;100 &nbsp;·&nbsp; Market Intelligence</div>
+    <div class="brand-sub">Nasdaq&#8209;100 &nbsp;·&nbsp; Evening Report</div>
   </div>
-  <div class="masthead-center">
+  <div class="masthead-price">
+    <div class="price-eyebrow">QQQ · {day_str} · {date_str}</div>
+    <div class="price-row">
+      <div class="price-num">{qqq_price}</div>
+      <div class="price-delta" style="color:{qqq_color}">{qqq_arrow} {qqq_sign}{abs(qqq_chg):.2f}%</div>
+    </div>
+    <div class="price-stats">
+      <span class="pstat"><span class="pstat-l">H</span> ${{qqq.get('high','--')}}</span>
+      <span class="pstat-sep">·</span>
+      <span class="pstat"><span class="pstat-l">L</span> ${{qqq.get('low','--')}}</span>
+      <span class="pstat-sep">·</span>
+      <span class="pstat"><span class="pstat-l">Prev</span> ${{qqq.get('prev','--')}}</span>
+      <span class="pstat-sep">·</span>
+      <span class="pstat"><span class="pstat-l">52W H</span> ${{qqq.get('h52','--')}}</span>
+      <span class="pstat-sep">·</span>
+      <span class="pstat"><span class="pstat-l">52W L</span> ${{qqq.get('l52','--')}}</span>
+      <span class="pstat-sep">·</span>
+      <span class="pstat"><span class="pstat-l">RSI</span> {{rsi_str}}</span>
+    </div>
+  </div>
+  <div class="masthead-thesis">
     <div class="headline-kicker">Today's Thesis</div>
     <div class="headline-text">{headline}</div>
   </div>
-  <div class="masthead-right">
-    <div class="price-eyebrow">QQQ Close</div>
-    <div class="price-num">{qqq_price}</div>
-    <div class="price-delta">{qqq_arrow} {qqq_sign}{abs(qqq_chg):.2f}%</div>
-    <div class="price-date">{day_str} · {date_str}</div>
-  </div>
 </div>
- 
+
 <div class="dateline">
   <span class="dateline-day">Evening Edition</span>
   <div class="dateline-line"></div>
   <span class="dateline-edition">After Hours Report</span>
 </div>
- 
+
 <div class="columns">
   <div class="col">
     <div class="col-label">Top Holdings</div>
@@ -669,7 +748,7 @@ if (raw.length > 1) {
     </div>
   </div>
 </div>
- 
+
 <div class="analysis">
   <div class="a-col">
     <div class="a-label">What Moved QQQ Today</div>
@@ -683,16 +762,16 @@ if (raw.length > 1) {
     {bullets_to_html(tomorrow)}
   </div>
 </div>
- 
+
 <div class="colophon">
   <span class="colophon-left">Generated {time_str}</span>
   <span class="colophon-right">Data: Finnhub &nbsp;·&nbsp; Analysis: Claude AI</span>
 </div>
- 
+
 <script>{js}</script>
 </body>
 </html>"""
- 
+
 def main():
     print("Fetching stocks...")
     quotes = fetch_stocks()
@@ -710,7 +789,6 @@ def main():
     with open("index.html", "w") as f:
         f.write(html)
     print("Done!")
- 
+
 if __name__ == "__main__":
     main()
- 
