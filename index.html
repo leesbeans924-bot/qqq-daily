@@ -3,21 +3,88 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QQQ Daily</title>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@800&display=swap" rel="stylesheet">
+  <title>QQQ Daily — Thursday, May 21, 2026</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body { background:#080b10; color:#c8d6e5; font-family:'Space Mono',monospace;
-           display:flex; align-items:center; justify-content:center; min-height:100vh; margin:0; }
-    .msg { text-align:center; }
-    h1 { font-family:'Syne',sans-serif; font-size:36px; color:#fff; margin-bottom:12px; }
-    h1 span { color:#00ff88; }
-    p { color:#4a5a6a; font-size:13px; }
+    :root {--bg:#080b10;--surface:#0e1318;--border:#1e2730;--text:#c8d6e5;--muted:#4a5a6a;--accent:#00ff88;--red:#ff4466;--gold:#f5c842;--mono:'Space Mono',monospace;--sans:'Syne',sans-serif}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:14px;line-height:1.6;min-height:100vh;background-image:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(0,255,136,.07),transparent)}
+    header{border-bottom:1px solid var(--border);padding:28px 40px 24px;display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap}
+    .logo{font-family:var(--sans);font-weight:800;font-size:28px;color:#fff}
+    .logo span{color:var(--accent)}
+    .header-right{text-align:right}
+    .date{font-size:12px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+    .qqq-hero{font-family:var(--sans);font-weight:800;font-size:42px;color:#fff;line-height:1}
+    .qqq-change{font-size:20px;font-weight:600;color:#00ff88}
+    .headline-bar{background:rgba(0,255,136,.06);border-top:1px solid rgba(0,255,136,.2);border-bottom:1px solid rgba(0,255,136,.2);padding:14px 40px;font-family:var(--sans);font-size:15px;font-weight:600;color:var(--accent)}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border-top:1px solid var(--border)}
+    .panel{background:var(--bg);padding:28px 32px}
+    .panel-full{background:var(--bg);padding:28px 32px;border-top:1px solid var(--border)}
+    .panel-label{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;font-family:var(--sans)}
+    .holding-row{display:grid;grid-template-columns:80px 1fr auto auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+    .holding-row:last-child{border-bottom:none}
+    .ticker{color:#fff;font-weight:700;font-size:12px}
+    .name{color:var(--muted);font-size:12px}
+    .price{text-align:right}
+    .change{text-align:right;font-weight:700;font-size:12px;min-width:72px}
+    .analysis-section{margin-bottom:24px}
+    .analysis-section h3{font-family:var(--sans);font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
+    .analysis-section ul{padding-left:18px}
+    .analysis-section li{margin-bottom:8px;line-height:1.7;font-size:13px}
+    .analysis-section p{font-size:13px;line-height:1.8}
+    canvas{width:100%!important}
+    .updated{padding:14px 40px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);display:flex;justify-content:space-between}
+    @media(max-width:700px){header{padding:20px}.grid{grid-template-columns:1fr}.panel,.panel-full{padding:20px}.headline-bar{padding:14px 20px}.qqq-hero{font-size:32px}.updated{padding:14px 20px;flex-direction:column;gap:4px}}
   </style>
 </head>
 <body>
-  <div class="msg">
-    <h1>QQQ <span>Daily</span></h1>
-    <p>First update publishes at 4:30 PM ET on the next trading day.</p>
+<header>
+  <div class="logo">QQQ <span>Daily</span></div>
+  <div class="header-right">
+    <div class="date">Thursday, May 21, 2026</div>
+    <div class="qqq-hero">$--</div>
+    <div class="qqq-change">▲ 0.00% today</div>
   </div>
+</header>
+<div class="headline-bar">◆ &nbsp;</div>
+<div class="grid">
+  <div class="panel">
+    <div class="panel-label">Top Holdings</div>
+    
+  </div>
+  <div class="panel">
+    <div class="panel-label">Macro</div>
+    
+    <div class="panel-label" style="margin-top:20px">30-Day Chart</div>
+    <canvas id="chart" height="120"></canvas>
+  </div>
+</div>
+<div class="panel-full">
+  <div class="grid" style="background:transparent;border:none;gap:32px">
+    <div>
+      <div class="analysis-section"><h3>What Moved QQQ Today</h3><ul></ul></div>
+      <div class="analysis-section"><h3>Chart Pattern</h3><p></p></div>
+    </div>
+    <div>
+      <div class="analysis-section"><h3>What to Watch Tomorrow</h3><ul></ul></div>
+    </div>
+  </div>
+</div>
+<div class="updated">
+  <span>Generated at 5:07 PM ET</span>
+  <span>Data via Yahoo Finance · Analysis via Claude</span>
+</div>
+<script>
+const chartData=[];
+const labels=chartData.map(d=>d.date);
+const prices=chartData.map(d=>d.close);
+const mn=Math.min(...prices),mx=Math.max(...prices);
+const ctx=document.getElementById('chart').getContext('2d');
+const grad=ctx.createLinearGradient(0,0,0,120);
+grad.addColorStop(0,'rgba(0,255,136,0.25)');
+grad.addColorStop(1,'rgba(0,255,136,0)');
+new Chart(ctx,{type:'line',data:{labels,datasets:[{data:prices,borderColor:'#00ff88',borderWidth:2,backgroundColor:grad,fill:true,tension:0.3,pointRadius:0,pointHoverRadius:4}]},options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'$'+c.parsed.y.toFixed(2)}}},scales:{x:{display:false},y:{display:true,min:mn*.995,max:mx*1.005,grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#4a5a6a',font:{size:10},callback:v=>'$'+v.toFixed(0)}}}}});
+</script>
 </body>
 </html>
