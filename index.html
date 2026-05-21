@@ -7,7 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    :root {--bg:#080b10;--surface:#0e1318;--border:#1e2730;--text:#c8d6e5;--muted:#4a5a6a;--accent:#00ff88;--red:#ff4466;--gold:#f5c842;--mono:'Space Mono',monospace;--sans:'Syne',sans-serif}
+    :root {--bg:#080b10;--border:#1e2730;--text:#c8d6e5;--muted:#4a5a6a;--accent:#00ff88;--gold:#f5c842;--mono:'Space Mono',monospace;--sans:'Syne',sans-serif}
     *{box-sizing:border-box;margin:0;padding:0}
     body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:14px;line-height:1.6;min-height:100vh;background-image:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(0,255,136,.07),transparent)}
     header{border-bottom:1px solid var(--border);padding:28px 40px 24px;display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap}
@@ -72,19 +72,35 @@
   </div>
 </div>
 <div class="updated">
-  <span>Generated at 5:07 PM ET</span>
+  <span>Generated at 5:15 PM ET</span>
   <span>Data via Yahoo Finance · Analysis via Claude</span>
 </div>
 <script>
-const chartData=[];
-const labels=chartData.map(d=>d.date);
-const prices=chartData.map(d=>d.close);
-const mn=Math.min(...prices),mx=Math.max(...prices);
-const ctx=document.getElementById('chart').getContext('2d');
-const grad=ctx.createLinearGradient(0,0,0,120);
-grad.addColorStop(0,'rgba(0,255,136,0.25)');
-grad.addColorStop(1,'rgba(0,255,136,0)');
-new Chart(ctx,{type:'line',data:{labels,datasets:[{data:prices,borderColor:'#00ff88',borderWidth:2,backgroundColor:grad,fill:true,tension:0.3,pointRadius:0,pointHoverRadius:4}]},options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'$'+c.parsed.y.toFixed(2)}}},scales:{x:{display:false},y:{display:true,min:mn*.995,max:mx*1.005,grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#4a5a6a',font:{size:10},callback:v=>'$'+v.toFixed(0)}}}}});
+const chartData = [];
+const labels = chartData.map(d => d.date);
+const prices = chartData.map(d => d.close);
+if (prices.length > 0) {
+  const mn = Math.min(...prices), mx = Math.max(...prices);
+  const ctx = document.getElementById('chart').getContext('2d');
+  const grad = ctx.createLinearGradient(0, 0, 0, 120);
+  grad.addColorStop(0, 'rgba(0,255,136,0.25)');
+  grad.addColorStop(1, 'rgba(0,255,136,0)');
+  new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets: [{ data: prices, borderColor: '#00ff88', borderWidth: 2,
+      backgroundColor: grad, fill: true, tension: 0.3, pointRadius: 0, pointHoverRadius: 4 }] },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => '$' + c.parsed.y.toFixed(2) } } },
+      scales: {
+        x: { display: false },
+        y: { display: true, min: mn * 0.995, max: mx * 1.005,
+          grid: { color: 'rgba(255,255,255,0.04)' },
+          ticks: { color: '#4a5a6a', font: { size: 10 }, callback: v => '$' + v.toFixed(0) } }
+      }
+    }
+  });
+}
 </script>
 </body>
 </html>
