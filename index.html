@@ -3,118 +3,522 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QQQ Daily — Thursday, May 21, 2026</title>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <title>QQQ Daily — MAY 21, 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Montserrat:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
-    :root {--bg:#080b10;--border:#1e2730;--text:#c8d6e5;--muted:#4a5a6a;--accent:#00ff88;--gold:#f5c842;--mono:'Space Mono',monospace;--sans:'Syne',sans-serif}
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:14px;line-height:1.6;min-height:100vh;background-image:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(0,255,136,.07),transparent)}
-    header{border-bottom:1px solid var(--border);padding:28px 40px 24px;display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap}
-    .logo{font-family:var(--sans);font-weight:800;font-size:28px;color:#fff}
-    .logo span{color:var(--accent)}
-    .header-right{text-align:right}
-    .date{font-size:12px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
-    .qqq-hero{font-family:var(--sans);font-weight:800;font-size:42px;color:#fff;line-height:1}
-    .qqq-change{font-size:20px;font-weight:600;color:#00ff88}
-    .headline-bar{background:rgba(0,255,136,.06);border-top:1px solid rgba(0,255,136,.2);border-bottom:1px solid rgba(0,255,136,.2);padding:14px 40px;font-family:var(--sans);font-size:15px;font-weight:600;color:var(--accent)}
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border-top:1px solid var(--border)}
-    .panel{background:var(--bg);padding:28px 32px}
-    .panel-full{background:var(--bg);padding:28px 32px;border-top:1px solid var(--border)}
-    .panel-label{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;font-family:var(--sans)}
-    .holding-row{display:grid;grid-template-columns:80px 1fr auto auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
-    .holding-row:last-child{border-bottom:none}
-    .ticker{color:#fff;font-weight:700;font-size:12px}
-    .name{color:var(--muted);font-size:12px}
-    .price{text-align:right}
-    .change{text-align:right;font-weight:700;font-size:12px;min-width:72px}
-    .analysis-section{margin-bottom:24px}
-    .analysis-section h3{font-family:var(--sans);font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
-    .analysis-section ul{padding-left:18px}
-    .analysis-section li{margin-bottom:8px;line-height:1.7;font-size:13px}
-    .analysis-section p{font-size:13px;line-height:1.8}
-    canvas{width:100%!important}
-    .updated{padding:14px 40px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);display:flex;justify-content:space-between}
-    @media(max-width:700px){header{padding:20px}.grid{grid-template-columns:1fr}.panel,.panel-full{padding:20px}.headline-bar{padding:14px 20px}.qqq-hero{font-size:32px}.updated{padding:14px 20px;flex-direction:column;gap:4px}}
+    :root {
+      --bg:      #0a0905;
+      --surface: #0f0c08;
+      --card:    #13100c;
+      --border:  #1e1a12;
+      --border2: #2a2318;
+      --text:    #a89880;
+      --dim:     #4a4030;
+      --gold:    #c9a84c;
+      --gold2:   #e8d4a0;
+      --red:     #c0392b;
+      --white:   #f0e8d8;
+      --serif:   'Cormorant Garamond', Georgia, serif;
+      --sans:    'Montserrat', sans-serif;
+      --mono:    'Space Mono', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-weight: 300;
+      line-height: 1.6;
+      min-height: 100vh;
+      background-image:
+        radial-gradient(ellipse 120% 60% at 50% 0%, rgba(201,168,76,0.04) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 100% 100%, rgba(201,168,76,0.02) 0%, transparent 50%);
+    }
+ 
+    /* ── MASTHEAD ── */
+    .masthead {
+      border-bottom: 1px solid var(--border2);
+      padding: 0 56px;
+      display: flex;
+      align-items: stretch;
+      justify-content: space-between;
+      gap: 0;
+    }
+    .masthead-left {
+      padding: 36px 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      border-right: 1px solid var(--border2);
+      padding-right: 48px;
+    }
+    .brand {
+      font-family: var(--serif);
+      font-size: 42px;
+      font-weight: 300;
+      font-style: italic;
+      color: var(--white);
+      letter-spacing: 0.02em;
+      line-height: 1;
+    }
+    .brand-rule {
+      width: 48px;
+      height: 1px;
+      background: var(--gold);
+      margin: 10px 0;
+      opacity: 0.6;
+    }
+    .brand-sub {
+      font-family: var(--sans);
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+    .masthead-center {
+      flex: 1;
+      padding: 36px 48px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .headline-text {
+      font-family: var(--serif);
+      font-size: 22px;
+      font-weight: 400;
+      color: var(--white);
+      line-height: 1.4;
+      max-width: 700px;
+    }
+    .headline-kicker {
+      font-family: var(--sans);
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 10px;
+    }
+    .masthead-right {
+      padding: 36px 0 36px 48px;
+      border-left: 1px solid var(--border2);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-end;
+      min-width: 200px;
+    }
+    .price-eyebrow {
+      font-family: var(--sans);
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 8px;
+    }
+    .price-num {
+      font-family: var(--mono);
+      font-size: 40px;
+      font-weight: 700;
+      color: var(--white);
+      line-height: 1;
+      letter-spacing: -1px;
+    }
+    .price-delta {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: #c9a84c;
+      margin-top: 8px;
+      letter-spacing: 0.05em;
+    }
+    .price-date {
+      font-family: var(--sans);
+      font-size: 9px;
+      color: var(--dim);
+      letter-spacing: 0.15em;
+      margin-top: 10px;
+      text-transform: uppercase;
+    }
+ 
+    /* ── DATELINE ── */
+    .dateline {
+      padding: 10px 56px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .dateline-day {
+      font-family: var(--serif);
+      font-size: 11px;
+      font-style: italic;
+      color: var(--dim);
+      letter-spacing: 0.05em;
+    }
+    .dateline-line {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, var(--border2), transparent);
+    }
+    .dateline-edition {
+      font-family: var(--sans);
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+ 
+    /* ── COLUMNS ── */
+    .columns {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      border-bottom: 1px solid var(--border2);
+    }
+    .col {
+      padding: 36px 56px;
+    }
+    .col + .col {
+      border-left: 1px solid var(--border2);
+    }
+    .col-label {
+      font-family: var(--sans);
+      font-size: 8px;
+      font-weight: 600;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--gold);
+      padding-bottom: 12px;
+      margin-bottom: 6px;
+      border-bottom: 1px solid var(--border2);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .col-label::before {
+      content: '';
+      display: inline-block;
+      width: 16px;
+      height: 1px;
+      background: var(--gold);
+      opacity: 0.5;
+    }
+ 
+    /* ── TICKER ROWS ── */
+    .row {
+      display: grid;
+      grid-template-columns: 56px 1fr auto 84px;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .row:last-child { border-bottom: none; }
+    .sym {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--gold2);
+      letter-spacing: 0.08em;
+    }
+    .co {
+      font-size: 11px;
+      font-weight: 300;
+      color: var(--dim);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      letter-spacing: 0.03em;
+    }
+    .px {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text);
+      text-align: right;
+    }
+    .ch {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      text-align: right;
+      letter-spacing: 0.05em;
+    }
+ 
+    /* ── CHART ── */
+    .chart-container {
+      margin-top: 28px;
+    }
+    .chart-wrap {
+      height: 180px;
+      margin-top: 10px;
+    }
+ 
+    /* ── ANALYSIS SECTION ── */
+    .analysis {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-bottom: 1px solid var(--border2);
+    }
+    .a-col {
+      padding: 36px 56px;
+    }
+    .a-col + .a-col {
+      border-left: 1px solid var(--border2);
+    }
+    .a-label {
+      font-family: var(--sans);
+      font-size: 8px;
+      font-weight: 600;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--gold);
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--border2);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .a-label::before {
+      content: '';
+      display: inline-block;
+      width: 16px;
+      height: 1px;
+      background: var(--gold);
+      opacity: 0.5;
+    }
+    .a-col ul {
+      list-style: none;
+      padding: 0;
+    }
+    .a-col li {
+      font-family: var(--serif);
+      font-size: 15px;
+      font-weight: 400;
+      color: var(--text);
+      line-height: 1.65;
+      padding: 11px 0 11px 20px;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+    }
+    .a-col li::before {
+      content: '◆';
+      position: absolute;
+      left: 0;
+      font-size: 5px;
+      color: var(--gold);
+      top: 18px;
+    }
+    .a-col li:last-child { border-bottom: none; }
+    .a-col p {
+      font-family: var(--serif);
+      font-size: 15px;
+      font-weight: 400;
+      color: var(--text);
+      line-height: 1.75;
+      margin-bottom: 12px;
+    }
+    .a-col p:last-child { margin-bottom: 0; }
+    .a-divider {
+      border: none;
+      border-top: 1px solid var(--border2);
+      margin: 28px 0 24px;
+    }
+ 
+    /* ── COLOPHON ── */
+    .colophon {
+      padding: 16px 56px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .colophon-left {
+      font-family: var(--serif);
+      font-style: italic;
+      font-size: 12px;
+      color: var(--dim);
+    }
+    .colophon-right {
+      font-family: var(--sans);
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+ 
+    @media (max-width: 780px) {
+      .masthead, .dateline, .col, .a-col, .colophon { padding-left: 20px; padding-right: 20px; }
+      .masthead { flex-direction: column; }
+      .masthead-left { border-right: none; padding-right: 0; border-bottom: 1px solid var(--border2); padding-bottom: 24px; }
+      .masthead-right { border-left: none; padding-left: 0; align-items: flex-start; border-top: 1px solid var(--border2); padding-top: 24px; }
+      .columns, .analysis { grid-template-columns: 1fr; }
+      .col + .col, .a-col + .a-col { border-left: none; border-top: 1px solid var(--border2); }
+      .price-num { font-size: 32px; }
+      .brand { font-size: 34px; }
+      .headline-text { font-size: 18px; }
+    }
   </style>
 </head>
 <body>
-<header>
-  <div class="logo">QQQ <span>Daily</span></div>
-  <div class="header-right">
-    <div class="date">Thursday, May 21, 2026</div>
-    <div class="qqq-hero">$714.51</div>
-    <div class="qqq-change">▲ 0.19% today</div>
+ 
+<div class="masthead">
+  <div class="masthead-left">
+    <div class="brand">QQQ Daily</div>
+    <div class="brand-rule"></div>
+    <div class="brand-sub">Nasdaq&#8209;100 &nbsp;·&nbsp; Market Intelligence</div>
   </div>
-</header>
-<div class="headline-bar">◆ &nbsp;**
-Tech's AI darling stumbles as rate expectations tick higher, capping QQQ's modest gains despite broad-based strength in consumer and cloud plays.
-
-**2. WHAT MOVED QQQ TODAY**
-- **NVIDIA -1.77%**: Semiconductor heaviest weight dragging the index as 10Y yields spike 31bps to 4.586%, pressure on high-multiple growth names
-- **Apple +0.91%**: Resilience in hardware demand offsetting macro headwinds; outperforming mega-cap peers
-- **Amazon +1.30%**: AWS strength narrative intact as cloud computing remains structural tailwind
-- **Costco -2.19%**: Consumer discretionary rotation signal; highest single-stock negative impact on QQQ weighting
-- **Netflix +1.37%**: Streaming stabilization trade crowded as rates normalize; defensive positioning
-
-**3. CHART PATTERN**
-Insufficient 30-day data provided, but the +0.19% close on rising yields suggests consolidation rather than breakout momentum. QQQ holding above intraday lows despite the NVIDIA selloff indicates institutional bid supporting index floor—classic distribution setup if yields breach 4.65%.
-
-**4. WHAT TO WATCH TOMORROW**
-- **Fed speakers (bullish/bearish split)**: Hawkish commentary extends yield curve higher, pressuring NVIDIA/Broadcom; dovish pivot catalyzes AI rotation rebound
-- **Earnings whisper season**: Any mega-cap pre-announcements on AI capex could reset 10Y expectations and unlock +100bps rallies in growth tier</div>
-<div class="grid">
-  <div class="panel">
-    <div class="panel-label">Top Holdings</div>
-    <div class="holding-row"><span class="ticker">NVDA</span><span class="name">NVIDIA</span><span class="price">$219.51</span><span class="change" style="color:#ff4466">▼ 1.77%</span></div><div class="holding-row"><span class="ticker">AAPL</span><span class="name">Apple</span><span class="price">$304.99</span><span class="change" style="color:#00ff88">▲ 0.91%</span></div><div class="holding-row"><span class="ticker">MSFT</span><span class="name">Microsoft</span><span class="price">$419.09</span><span class="change" style="color:#ff4466">▼ 0.47%</span></div><div class="holding-row"><span class="ticker">AMZN</span><span class="name">Amazon</span><span class="price">$268.46</span><span class="change" style="color:#00ff88">▲ 1.30%</span></div><div class="holding-row"><span class="ticker">GOOGL</span><span class="name">Alphabet</span><span class="price">$387.66</span><span class="change" style="color:#ff4466">▼ 0.32%</span></div><div class="holding-row"><span class="ticker">META</span><span class="name">Meta</span><span class="price">$607.38</span><span class="change" style="color:#00ff88">▲ 0.38%</span></div><div class="holding-row"><span class="ticker">TSLA</span><span class="name">Tesla</span><span class="price">$417.85</span><span class="change" style="color:#00ff88">▲ 0.14%</span></div><div class="holding-row"><span class="ticker">AVGO</span><span class="name">Broadcom</span><span class="price">$414.57</span><span class="change" style="color:#ff4466">▼ 0.76%</span></div><div class="holding-row"><span class="ticker">COST</span><span class="name">Costco</span><span class="price">$1050.45</span><span class="change" style="color:#ff4466">▼ 2.19%</span></div><div class="holding-row"><span class="ticker">NFLX</span><span class="name">Netflix</span><span class="price">$89.3</span><span class="change" style="color:#00ff88">▲ 1.37%</span></div>
+  <div class="masthead-center">
+    <div class="headline-kicker">Today's Thesis</div>
+    <div class="headline-text">QQQ treads water as mega-cap strength battles NVIDIA weakness and yield headwinds.</div>
   </div>
-  <div class="panel">
-    <div class="panel-label">Macro</div>
-    <div class="holding-row"><span class="ticker">10Y Yield</span><span class="name"></span><span class="price">4.586%</span><span class="change" style="color:#00ff88">▲ 0.31%</span></div>
-    <div class="panel-label" style="margin-top:20px">30-Day Chart</div>
-    <canvas id="chart" height="120"></canvas>
+  <div class="masthead-right">
+    <div class="price-eyebrow">QQQ Close</div>
+    <div class="price-num">$714.51</div>
+    <div class="price-delta">▲ +0.19%</div>
+    <div class="price-date">THURSDAY · MAY 21, 2026</div>
   </div>
 </div>
-<div class="panel-full">
-  <div class="grid" style="background:transparent;border:none;gap:32px">
-    <div>
-      <div class="analysis-section"><h3>What Moved QQQ Today</h3><ul><li></li><li>NVIDIA -1.77%**: Semiconductor heaviest weight dragging the index as 10Y yields spike 31bps to 4.586%, pressure on high-multiple growth names</li><li>Apple +0.91%**: Resilience in hardware demand offsetting macro headwinds; outperforming mega-cap peers</li><li>Amazon +1.30%**: AWS strength narrative intact as cloud computing remains structural tailwind</li><li>Costco -2.19%**: Consumer discretionary rotation signal; highest single-stock negative impact on QQQ weighting</li><li>Netflix +1.37%**: Streaming stabilization trade crowded as rates normalize; defensive positioning</li><li>3. CHART PATTERN**</li><li>Insufficient 30-day data provided, but the +0.19% close on rising yields suggests consolidation rather than breakout momentum. QQQ holding above intraday lows despite the NVIDIA selloff indicates institutional bid supporting index floor—classic distribution setup if yields breach 4.65%.</li><li>4. WHAT TO WATCH TOMORROW**</li><li>Fed speakers (bullish/bearish split)**: Hawkish commentary extends yield curve higher, pressuring NVIDIA/Broadcom; dovish pivot catalyzes AI rotation rebound</li><li>Earnings whisper season**: Any mega-cap pre-announcements on AI capex could reset 10Y expectations and unlock +100bps rallies in growth tier</li></ul></div>
-      <div class="analysis-section"><h3>Chart Pattern</h3><p>**<br>Insufficient 30-day data provided, but the +0.19% close on rising yields suggests consolidation rather than breakout momentum. QQQ holding above intraday lows despite the NVIDIA selloff indicates institutional bid supporting index floor—classic distribution setup if yields breach 4.65%.<br><br>**4. WHAT TO WATCH TOMORROW**<br>- **Fed speakers (bullish/bearish split)**: Hawkish commentary extends yield curve higher, pressuring NVIDIA/Broadcom; dovish pivot catalyzes AI rotation rebound<br>- **Earnings whisper season**: Any mega-cap pre-announcements on AI capex could reset 10Y expectations and unlock +100bps rallies in growth tier</p></div>
+ 
+<div class="dateline">
+  <span class="dateline-day">Evening Edition</span>
+  <div class="dateline-line"></div>
+  <span class="dateline-edition">After Hours Report</span>
+</div>
+ 
+<div class="columns">
+  <div class="col">
+    <div class="col-label">Top Holdings</div>
+    <div class="row">
+          <span class="sym">NVDA</span>
+          <span class="co">NVIDIA</span>
+          <span class="px">$219.51</span>
+          <span class="ch" style="color:#c0392b">▼1.77%</span>
+        </div><div class="row">
+          <span class="sym">AAPL</span>
+          <span class="co">Apple</span>
+          <span class="px">$304.99</span>
+          <span class="ch" style="color:#c9a84c">▲+0.91%</span>
+        </div><div class="row">
+          <span class="sym">MSFT</span>
+          <span class="co">Microsoft</span>
+          <span class="px">$419.09</span>
+          <span class="ch" style="color:#c0392b">▼0.47%</span>
+        </div><div class="row">
+          <span class="sym">AMZN</span>
+          <span class="co">Amazon</span>
+          <span class="px">$268.46</span>
+          <span class="ch" style="color:#c9a84c">▲+1.30%</span>
+        </div><div class="row">
+          <span class="sym">GOOGL</span>
+          <span class="co">Alphabet</span>
+          <span class="px">$387.66</span>
+          <span class="ch" style="color:#c0392b">▼0.32%</span>
+        </div><div class="row">
+          <span class="sym">META</span>
+          <span class="co">Meta</span>
+          <span class="px">$607.38</span>
+          <span class="ch" style="color:#c9a84c">▲+0.38%</span>
+        </div><div class="row">
+          <span class="sym">TSLA</span>
+          <span class="co">Tesla</span>
+          <span class="px">$417.85</span>
+          <span class="ch" style="color:#c9a84c">▲+0.14%</span>
+        </div><div class="row">
+          <span class="sym">AVGO</span>
+          <span class="co">Broadcom</span>
+          <span class="px">$414.57</span>
+          <span class="ch" style="color:#c0392b">▼0.76%</span>
+        </div><div class="row">
+          <span class="sym">COST</span>
+          <span class="co">Costco</span>
+          <span class="px">$1050.45</span>
+          <span class="ch" style="color:#c0392b">▼2.19%</span>
+        </div><div class="row">
+          <span class="sym">NFLX</span>
+          <span class="co">Netflix</span>
+          <span class="px">$89.3</span>
+          <span class="ch" style="color:#c9a84c">▲+1.37%</span>
+        </div>
+  </div>
+  <div class="col">
+    <div class="col-label">Macro Indicators</div>
+    <div class="row">
+          <span class="sym">10Y Yield</span>
+          <span class="co"></span>
+          <span class="px">4.586%</span>
+          <span class="ch" style="color:#c9a84c">▲+0.31%</span>
+        </div><div class="row">
+          <span class="sym">VIX</span>
+          <span class="co"></span>
+          <span class="px">16.76%</span>
+          <span class="ch" style="color:#c0392b">▼3.90%</span>
+        </div>
+    <div class="chart-container">
+      <div class="col-label">30-Day Price</div>
+      <div class="chart-wrap"><canvas id="sparkline"></canvas></div>
     </div>
-    <div>
-      <div class="analysis-section"><h3>What to Watch Tomorrow</h3><ul><li></li><li>Fed speakers (bullish/bearish split)**: Hawkish commentary extends yield curve higher, pressuring NVIDIA/Broadcom; dovish pivot catalyzes AI rotation rebound</li><li>Earnings whisper season**: Any mega-cap pre-announcements on AI capex could reset 10Y expectations and unlock +100bps rallies in growth tier</li></ul></div>
-    </div>
   </div>
 </div>
-<div class="updated">
-  <span>Generated at 5:37 PM ET</span>
-  <span>Data via Finnhub · Analysis via Claude</span>
+ 
+<div class="analysis">
+  <div class="a-col">
+    <div class="a-label">What Moved QQQ Today</div>
+    <ul><li>QQQ up 0.19% as the index balances gains in Apple, Amazon and Netflix against losses in semiconductor and retail names.</li><li>NVIDIA down 1.77%, dragging the semiconductor complex lower as investors rotate away from AI chipmakers on valuation concerns following recent rallies.</li><li>Costco down 2.19%, the hardest hit in the holdings, likely pressured by margin anxiety as consumer spending data comes under scrutiny.</li><li>Amazon up 1.30% and Netflix up 1.37%, both showing consumer-adjacent resilience that suggests discretionary spending remains intact despite inflation rhetoric.</li><li>10Y yield climbed 31 basis points to 4.586%, tightening terminal rate expectations and pressuring multiple expansion for growth stocks dependent on cheap capital.</li></ul>
+  </div>
+  <div class="a-col">
+    <div class="a-label">Chart Pattern</div>
+    <p>Insufficient historical data provided for 30-day pattern analysis. Without a complete price trail showing specific support and resistance levels or technical formations, no reliable pattern can be identified or projected.</p>
+    <hr class="a-divider">
+    <div class="a-label">What to Watch Tomorrow</div>
+    <ul><li>Potential Fed speaker remarks on inflation trajectory. Bullish case: dovish tone sparks growth stock rally and yield compression. Bearish case: hawkish hold stance locks in higher rates and pressures unprofitable tech further.</li><li>Q4 earnings season acceleration with major tech earnings arriving. Bullish case: beats on AI revenue and margin expansion drive multiple re-rating higher. Bearish case: guidance disappointment confirms growth slowdown and triggers NASDAQ pullback.</li><li>Treasury auction activity and bond market digestion of current yields. Bullish case: demand exceeds supply, yields decline, QQQ catches bid. Bearish case: weak demand signals inflation persistence and forces yield higher.</li></ul>
+  </div>
 </div>
+ 
+<div class="colophon">
+  <span class="colophon-left">Generated 6:54 PM ET</span>
+  <span class="colophon-right">Data: Finnhub &nbsp;·&nbsp; Analysis: Claude AI</span>
+</div>
+ 
 <script>
-const chartData = [];
-const labels = chartData.map(d => d.date);
-const prices = chartData.map(d => d.close);
-if (prices.length > 0) {
-  const mn = Math.min(...prices), mx = Math.max(...prices);
-  const ctx = document.getElementById('chart').getContext('2d');
-  const grad = ctx.createLinearGradient(0, 0, 0, 120);
-  grad.addColorStop(0, 'rgba(0,255,136,0.25)');
-  grad.addColorStop(1, 'rgba(0,255,136,0)');
+const raw = [];
+if (raw.length > 1) {
+  const labels = raw.map(d => d.date);
+  const prices = raw.map(d => d.close);
+  const mn = Math.min(...prices) * 0.997;
+  const mx = Math.max(...prices) * 1.003;
+  const ctx = document.getElementById('sparkline').getContext('2d');
+  const g = ctx.createLinearGradient(0, 0, 0, 180);
+  g.addColorStop(0, 'rgba(201,168,76,0.15)');
+  g.addColorStop(1, 'rgba(201,168,76,0)');
   new Chart(ctx, {
     type: 'line',
-    data: { labels, datasets: [{ data: prices, borderColor: '#00ff88',
-      borderWidth: 2, backgroundColor: grad, fill: true,
-      tension: 0.3, pointRadius: 0, pointHoverRadius: 4 }] },
+    data: { labels, datasets: [{ data: prices, borderColor: '#c9a84c',
+      borderWidth: 1.5, backgroundColor: g, fill: true,
+      tension: 0.4, pointRadius: 0, pointHoverRadius: 5,
+      pointHoverBackgroundColor: '#c9a84c' }] },
     options: {
-      responsive: true,
-      plugins: { legend: { display: false },
-        tooltip: { callbacks: { label: c => '$' + c.parsed.y.toFixed(2) } } },
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: { label: c => '$' + c.parsed.y.toFixed(2) },
+          backgroundColor: '#12100e', titleColor: '#6b5e3e',
+          bodyColor: '#c9a84c', borderColor: '#2a2318', borderWidth: 1,
+          padding: 10
+        }
+      },
       scales: {
         x: { display: false },
-        y: { display: true, min: mn * 0.995, max: mx * 1.005,
-          grid: { color: 'rgba(255,255,255,0.04)' },
-          ticks: { color: '#4a5a6a', font: { size: 10 },
-            callback: v => '$' + v.toFixed(0) } }
+        y: { min: mn, max: mx, display: true,
+          grid: { color: 'rgba(201,168,76,0.06)', drawBorder: false },
+          ticks: { color: '#5a4e36', font: { size: 10, family: 'Cormorant Garamond' },
+            callback: v => '$' + v.toFixed(0), maxTicksLimit: 4 }
+        }
       }
     }
   });
