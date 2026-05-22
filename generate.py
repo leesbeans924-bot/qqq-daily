@@ -105,29 +105,30 @@ def fetch_macro():
     return result
 
 def fetch_qqq_30d():
-    """30-day QQQ daily OHLCV via Yahoo Finance chart API — no key needed."""
+    """30-day QQQ daily OHLCV via Yahoo Finance chart API."""
     try:
         r = requests.get(
             "https://query1.finance.yahoo.com/v8/finance/chart/QQQ",
-            params={"interval": "1d", "range": "35d"},
+            params={"interval": "1d", "range": "40d"},
             headers={"User-Agent": "Mozilla/5.0 (compatible)"},
             timeout=10
         )
-        data   = r.json()["chart"]["result"][0]
-        times  = data["timestamp"]
-        closes = data["indicators"]["quote"][0]["close"]
-        highs  = data["indicators"]["quote"][0]["high"]
-        lows   = data["indicators"]["quote"][0]["low"]
-        vols   = data["indicators"]["quote"][0]["volume"]
+        data  = r.json()["chart"]["result"][0]
+        times = data["timestamp"]
+        q     = data["indicators"]["quote"][0]
         result = []
-        for t, c, h, l, v in zip(times, closes, highs, lows, vols):
+        for i, t in enumerate(times):
+            o, h, l, c, v = q["open"][i], q["high"][i], q["low"][i], q["close"][i], q["volume"][i]
             if c is None: continue
+            dt = datetime.fromtimestamp(t)
             result.append({
-                "date":   datetime.fromtimestamp(t).strftime("%b %-d"),
+                "date":   dt.strftime("%b %-d"),
+                "ymd":    dt.strftime("%Y-%m-%d"),
+                "open":   round(float(o), 2) if o else round(float(c), 2),
+                "high":   round(float(h), 2) if h else round(float(c), 2),
+                "low":    round(float(l), 2) if l else round(float(c), 2),
                 "close":  round(float(c), 2),
-                "high":   round(float(h), 2) if h else None,
-                "low":    round(float(l), 2) if l else None,
-                "volume": int(v) if v else None,
+                "volume": int(v) if v else 0,
             })
         print(f"  Chart: {len(result)} days OK")
         return result
@@ -157,35 +158,48 @@ def get_analysis(quotes, macro, chart_data):
         if vol_lines:
             vol_context = "\nRECENT DAILY DETAIL (close + volume):\n" + "\n".join(vol_lines)
 
-    prompt = f"""You are a veteran technical analyst and day trader with 15 years of experience writing nightly market intelligence for serious active traders.
+    prompt = f"""You are a veteran technical analyst and day trader with 15 years of experience.
 
-HOLDINGS (today's close and % change):
+HOLDINGS (today):
 {holdings_lines}
 
 MACRO:
 {macro_lines}
 
-30-DAY QQQ CLOSES (oldest to newest): {prices}{vol_context}
+30-DAY QQQ OHLCV (oldest to newest, last 15 sessions):
+{chr(10).join(
+    f"  {d['date']}: O={d['open']} H={d['high']} L={d['low']} C={d['close']} Vol={d['volume']/1e6:.1f}M"
+    for d in chart_data[-15:] if d.get('open')
+) if chart_data else "  (no data)"}
 
-Write a tight, specific nightly briefing in exactly four sections. Plain text only — no markdown, no asterisks, no bold. Write like a sharp trader talking to another sharp trader. Be specific: use price levels, volume figures, and pattern names. No vague language.
+Write a nightly briefing in exactly four sections. Plain text only. No markdown, no asterisks.
 
 SECTION 1 - HEADLINE
-One punchy sentence — the single most important thing that happened today.
+One punchy sentence capturing today's dominant theme.
 
 SECTION 2 - MOVERS
-5 bullets starting with a dash. For each mover: name the stock or macro item, state the exact move, then give the specific technical or fundamental reason. Reference actual price levels where relevant.
+5 bullets starting with a dash. Name the stock or macro item, exact move, specific reason. Reference price levels.
 
 SECTION 3 - CHART
-Analyze the 30-day price action like a trader. Name the pattern. Identify key support and resistance levels from the data. Then give two specific scenarios:
-- The bullish case: what the pattern suggests if buyers hold, with a specific price target
-- The bearish case: what breaks down and where support is, with specific levels
-Then name the one key tell — the specific signal (price level, volume, candle type) that will confirm which scenario is playing out.
-Close with one sentence: this is technical analysis, not a prediction — macro events can override any chart setup overnight.
+First line: SUMMARY: [2 sentences naming the pattern and current structure — use specific prices]
+
+Then two scenario blocks in EXACTLY this format:
+
+BULLISH | ~[X]% likely | [5-word title]
+[2-3 sentences: what the bull case looks like, specific upside target price]
+TRIGGER: [exact price level or volume signal that confirms bull case]
+
+BEARISH | ~[X]% likely | [5-word title]
+[2-3 sentences: what the bear case looks like, specific downside target price]
+TRIGGER: [exact price level or volume signal that confirms bear case]
+
+KEY TELL: [one sentence — the single most important thing to watch]
+CAVEAT: This is technical pattern analysis, not a prediction or financial advice — macro events can override any chart setup overnight.
 
 SECTION 4 - TOMORROW
-3 bullets starting with a dash. Each bullet names a specific catalyst (not vague — name the actual event, speaker, or data release), then gives a crisp bullish outcome and bearish outcome with price implications for QQQ.
+3 bullets starting with a dash. Name the specific catalyst, then bullish outcome and bearish outcome with QQQ price implications.
 
-Tone: experienced trader, direct, no hedging waffle, no financial advice disclaimers beyond what is specified above."""
+Write like a trader talking to a trader. Direct, specific, no filler."""
     msg = client.messages.create(
         model="claude-haiku-4-5-20251001",
         max_tokens=900,
@@ -221,22 +235,6 @@ def bullets_to_html(text):
     return "<ul>" + "".join(lines) + "</ul>" if lines else ""
 
 
-def calc_rsi(prices, period=14):
-    """Calculate RSI from a list of closing prices."""
-    if len(prices) < period + 1:
-        return None
-    deltas = [prices[i] - prices[i-1] for i in range(1, len(prices))]
-    gains  = [d for d in deltas if d > 0]
-    losses = [-d for d in deltas if d < 0]
-    if not gains or not losses:
-        return None
-    avg_gain = sum(gains[-period:]) / period
-    avg_loss = sum(losses[-period:]) / period
-    if avg_loss == 0:
-        return 100.0
-    rs  = avg_gain / avg_loss
-    return round(100 - (100 / (1 + rs)), 1)
-
 def build_html(quotes, macro, chart_data, analysis):
     et       = pytz.timezone("America/New_York")
     now      = datetime.now(et)
@@ -244,10 +242,25 @@ def build_html(quotes, macro, chart_data, analysis):
     time_str = now.strftime("%-I:%M %p ET")
     day_str  = now.strftime("%A").upper()
 
-    # RSI from chart data
+    # RSI + chart stats
     chart_prices = [d["close"] for d in chart_data]
-    rsi_val = calc_rsi(chart_prices)
+    rsi_val  = calc_rsi(chart_prices)
     rsi_str  = f"{rsi_val}" if rsi_val else "--"
+
+    period_high = max((d["high"] for d in chart_data if d.get("high")), default=None)
+    period_low  = min((d["low"]  for d in chart_data if d.get("low")),  default=None)
+    last_close  = chart_data[-1]["close"] if chart_data else None
+    drawdown    = round((last_close - period_high) / period_high * 100, 1) if period_high and last_close else None
+    ph_str   = f"${period_high:.2f}" if period_high else "--"
+    pl_str   = f"${period_low:.2f}"  if period_low  else "--"
+    lc_str   = f"${last_close:.2f}"  if last_close  else "--"
+    dd_str   = f"{drawdown:.1f}%" if drawdown else "--"
+    dd_color = "#a78bfa" if drawdown and drawdown >= 0 else "#f87171"
+
+    # Parse chart analysis into scenario cards
+    chart_section_raw = extract_section(analysis, "SECTION 3 - CHART")
+    chart_parsed      = parse_chart_section(chart_section_raw)
+    chart_cards_html  = scenario_cards_html(chart_parsed)
 
     headline = extract_section(analysis, "SECTION 1 - HEADLINE")
     movers   = extract_section(analysis, "SECTION 2 - MOVERS")
@@ -307,78 +320,38 @@ def build_html(quotes, macro, chart_data, analysis):
 
     js = """
 const raw = JSON_DATA;
-if (raw.length > 1) {
-  const labels = raw.map(d => d.date);
-  const prices = raw.map(d => d.close);
-  const vols   = raw.map(d => d.volume || 0);
-  const maxVol = Math.max(...vols);
-  const mn = Math.min(...prices) * 0.995;
-  const mx = Math.max(...prices) * 1.005;
-
-  const priceCtx = document.getElementById('sparkline').getContext('2d');
-  const g = priceCtx.createLinearGradient(0, 0, 0, 140);
-  g.addColorStop(0, 'rgba(167,139,250,0.18)');
-  g.addColorStop(1, 'rgba(167,139,250,0)');
-
-  new Chart(priceCtx, {
-    type: 'line',
-    data: { labels, datasets: [{ data: prices, borderColor: '#a78bfa',
-      borderWidth: 2, backgroundColor: g, fill: true,
-      tension: 0.3, pointRadius: 0, pointHoverRadius: 5,
-      pointHoverBackgroundColor: '#a78bfa' }] },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            title: i => i[0].label,
-            label: i => {
-              const d = raw[i[0].dataIndex];
-              const lines = ['Close: $' + i[0].parsed.y.toFixed(2)];
-              if (d.high)   lines.push('High:  $' + d.high.toFixed(2));
-              if (d.low)    lines.push('Low:   $' + d.low.toFixed(2));
-              if (d.volume) lines.push('Vol:   ' + (d.volume/1e6).toFixed(1) + 'M');
-              return lines;
-            }
-          },
-          backgroundColor: '#0d0e12', titleColor: '#c0c8e8',
-          bodyColor: '#a78bfa', borderColor: '#252838', borderWidth: 1, padding: 10
-        }
-      },
-      scales: {
-        x: { display: false },
-        y: { min: mn, max: mx, display: true, position: 'right',
-          grid: { color: 'rgba(167,139,250,0.05)', drawBorder: false },
-          ticks: { color: '#7880a8', font: { size: 10 },
-            callback: v => '$' + v.toFixed(0), maxTicksLimit: 5 }
-        }
-      }
-    }
+if (raw.length > 1 && typeof LightweightCharts !== 'undefined') {
+  const wrap = document.getElementById('lw-chart');
+  const chart = LightweightCharts.createChart(wrap, {
+    width: wrap.clientWidth || 800,
+    height: 220,
+    layout: { background: { color: 'transparent' }, textColor: '#7880a8' },
+    grid: { vertLines: { color: 'rgba(167,139,250,0.06)' }, horzLines: { color: 'rgba(167,139,250,0.06)' } },
+    crosshair: { mode: 1 },
+    rightPriceScale: { borderColor: '#1c1f2a', scaleMargins: { top: 0.05, bottom: 0.25 } },
+    timeScale: { borderColor: '#1c1f2a', timeVisible: true, secondsVisible: false },
   });
 
-  // Volume bars
-  const volCtx = document.getElementById('volbars').getContext('2d');
-  new Chart(volCtx, {
-    type: 'bar',
-    data: { labels, datasets: [{ data: vols,
-      backgroundColor: raw.map((d, i) =>
-        i === 0 ? 'rgba(167,139,250,0.3)' :
-        d.close >= raw[i-1].close ? 'rgba(167,139,250,0.45)' : 'rgba(248,113,113,0.35)'
-      ),
-      borderWidth: 0, borderRadius: 1 }] },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: {
-        callbacks: { label: i => (i.parsed.y/1e6).toFixed(1) + 'M shares' },
-        backgroundColor: '#0d0e12', bodyColor: '#7880a8',
-        borderColor: '#252838', borderWidth: 1, padding: 8
-      }},
-      scales: {
-        x: { display: false },
-        y: { display: false, min: 0, max: maxVol * 3 }
-      }
-    }
+  const candles = chart.addCandlestickSeries({
+    upColor: '#a78bfa', downColor: '#f87171',
+    borderUpColor: '#a78bfa', borderDownColor: '#f87171',
+    wickUpColor: '#a78bfa', wickDownColor: '#f87171',
+  });
+  candles.setData(raw.map(d => ({ time: d.ymd, open: d.open, high: d.high, low: d.low, close: d.close })));
+
+  const volSeries = chart.addHistogramSeries({
+    priceFormat: { type: 'volume' },
+    priceScaleId: 'vol',
+  });
+  chart.priceScale('vol').applyOptions({ scaleMargins: { top: 0.82, bottom: 0 } });
+  volSeries.setData(raw.map((d, i) => ({
+    time: d.ymd,
+    value: d.volume,
+    color: i > 0 && d.close >= raw[i-1].close ? 'rgba(167,139,250,0.4)' : 'rgba(248,113,113,0.35)',
+  })));
+
+  window.addEventListener('resize', () => {
+    chart.applyOptions({ width: wrap.clientWidth });
   });
 }
 """.replace("JSON_DATA", chart_json)
@@ -392,6 +365,7 @@ if (raw.length > 1) {
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
   <style>
     :root {{
       --bg:      #0d0e12;
@@ -652,14 +626,6 @@ if (raw.length > 1) {
     .chart-container {{
       margin-top: 28px;
     }}
-    .chart-wrap {{
-      height: 150px;
-      margin-top: 10px;
-    }}
-    .vol-wrap {{
-      height: 40px;
-      margin-top: 3px;
-    }}
 
     /* ── ANALYSIS SECTION ── */
     .analysis {{
@@ -755,6 +721,53 @@ if (raw.length > 1) {
       color: var(--dim);
     }}
 
+
+    .stat-strip {{ display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; }}
+    .stat-pill {{
+      background: rgba(167,139,250,0.07);
+      border: 0.5px solid #1c1f2a;
+      border-radius: 6px;
+      padding: 5px 10px;
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      flex: 1; min-width: 60px;
+    }}
+    .sl {{ font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--dim); font-family: var(--sans); }}
+    .sv {{ font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--white); }}
+    .scenario-card {{
+      border-radius: 6px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+    }}
+    .sc-header {{ display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }}
+    .sc-title {{ font-family: var(--sans); font-size: 13px; font-weight: 600; color: var(--white); }}
+    .sc-badge {{
+      font-family: var(--mono); font-size: 10px; font-weight: 700;
+      border: 1px solid; border-radius: 4px; padding: 2px 7px;
+      letter-spacing: 0.03em;
+    }}
+    .sc-body {{ font-family: var(--sans); font-size: 13px; color: #c0c8e8; line-height: 1.7; margin: 0 0 8px; }}
+    .sc-trigger {{
+      font-family: var(--sans); font-size: 12px; color: var(--dim);
+      border-top: 0.5px solid rgba(255,255,255,0.06); padding-top: 8px;
+    }}
+    .sc-trigger span {{ font-weight: 600; color: var(--text); }}
+    .sc-tell {{
+      font-family: var(--sans); font-size: 12px; color: var(--text);
+      background: rgba(167,139,250,0.05);
+      border: 0.5px solid #1c1f2a;
+      border-radius: 6px; padding: 10px 14px; margin: 10px 0;
+    }}
+    .sc-tell span {{ font-weight: 600; color: #a78bfa; }}
+    .chart-summary {{
+      font-family: var(--sans); font-size: 13px; color: var(--text);
+      line-height: 1.7; margin-bottom: 14px;
+    }}
+    .sc-caveat {{
+      font-family: var(--sans); font-size: 11px; color: var(--dim);
+      font-style: italic; margin-top: 10px; line-height: 1.6;
+    }}
+    .chart-wrap {{ height: 150px; margin-top: 10px; }}
+    .vol-wrap {{ height: 40px; margin-top: 3px; }}
     @media (max-width: 780px) {{
       .masthead, .dateline, .col, .a-col, .colophon {{ padding-left: 20px; padding-right: 20px; }}
       .masthead {{ grid-template-columns: 1fr; }}
@@ -831,8 +844,8 @@ if (raw.length > 1) {
     {bullets_to_html(movers)}
   </div>
   <div class="a-col">
-    <div class="a-label">Chart Pattern</div>
-    {pat_html}
+    <div class="a-label">Chart Pattern &amp; Scenarios</div>
+    {chart_cards_html}
     <hr class="a-divider">
     <div class="a-label">What to Watch Tomorrow</div>
     {bullets_to_html(tomorrow)}
@@ -868,3 +881,57 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# ── Chart section parsers (appended) ─────────────────────────────────────────
+def parse_chart_section(raw):
+    import re as _re
+    out = {"summary": "", "scenarios": [], "tell": "", "caveat": ""}
+    sm = _re.search(r"SUMMARY:\s*(.+?)(?=BULLISH|BEARISH|KEY TELL|$)", raw, _re.DOTALL)
+    if sm:
+        out["summary"] = strip_md(sm.group(1).strip())
+    pat = _re.compile(
+        r"(BULLISH|BEARISH)\s*\|\s*~?(\d+)%[^|]*\|\s*([^\n]+)\n(.*?)TRIGGER:\s*([^\n]+)",
+        _re.DOTALL
+    )
+    for m in pat.finditer(raw):
+        out["scenarios"].append({
+            "type":    m.group(1),
+            "pct":     m.group(2),
+            "title":   strip_md(m.group(3).strip()),
+            "body":    strip_md(m.group(4).strip()),
+            "trigger": strip_md(m.group(5).strip()),
+        })
+    tm = _re.search(r"KEY TELL:\s*([^\n]+)", raw)
+    if tm:
+        out["tell"] = strip_md(tm.group(1).strip())
+    cm = _re.search(r"CAVEAT:\s*(.+?)$", raw, _re.DOTALL)
+    if cm:
+        out["caveat"] = strip_md(cm.group(1).strip())
+    return out
+
+
+def scenario_cards_html(cp):
+    bits = []
+    if cp["summary"]:
+        bits.append('<p class="chart-summary">' + cp["summary"] + '</p>')
+    for s in cp["scenarios"]:
+        typ   = s["type"].lower()
+        color = "#a78bfa" if typ == "bullish" else "#f87171"
+        bg    = "rgba(167,139,250,0.07)" if typ == "bullish" else "rgba(248,113,113,0.07)"
+        lbl   = "Bullish" if typ == "bullish" else "Bearish"
+        trig  = ('<div class="sc-trigger"><span>' + lbl + ' trigger:</span> ' + s["trigger"] + '</div>') if s["trigger"] else ""
+        bits.append(
+            '<div class="scenario-card" style="border-left:3px solid ' + color + ';background:' + bg + '">'
+            '<div class="sc-header">'
+            '<span class="sc-title">' + s["title"] + '</span>'
+            '<span class="sc-badge" style="color:' + color + ';border-color:' + color + '">~' + s["pct"] + '% likely</span>'
+            '</div>'
+            '<p class="sc-body">' + s["body"] + '</p>'
+            + trig +
+            '</div>'
+        )
+    if cp["tell"]:
+        bits.append('<div class="sc-tell"><span>Key tell:</span> ' + cp["tell"] + '</div>')
+    if cp["caveat"]:
+        bits.append('<p class="sc-caveat">' + cp["caveat"] + '</p>')
+    return "\n".join(bits)
