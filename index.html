@@ -3,384 +3,115 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QQQ Daily — MAY 21, 2026</title>
+  <title>QQQ Daily — MAY 22, 2026</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
   <style>
     :root {
-      --bg:      #0d0e12;
-      --surface: #11131a;
-      --card:    #11131a;
-      --border:  #1c1f2a;
-      --border2: #252838;
-      --text:    #c0c8e8;
-      --dim:     #7880a8;
-      --gold:    #a78bfa;
-      --gold2:   #c0c8e8;
-      --red:     #f87171;
-      --white:   #e8ecf8;
-      --serif:   'Cormorant Garamond', Georgia, serif;
-      --sans:    'Inter', sans-serif;
-      --mono:    'Space Mono', monospace;
+      --bg:#0d0e12; --surface:#11131a; --border:#1c1f2a; --border2:#252838;
+      --text:#c0c8e8; --dim:#7880a8; --green:#a78bfa; --red:#f87171;
+      --white:#e8ecf8; --gold:#a78bfa;
+      --serif:'Cormorant Garamond',Georgia,serif;
+      --sans:'Inter',sans-serif; --mono:'Space Mono',monospace;
     }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--sans);
-      font-weight: 300;
-      line-height: 1.6;
-      min-height: 100vh;
-      background-image:
-        radial-gradient(ellipse 120% 60% at 50% 0%, rgba(167,139,250,0.04) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 40% at 100% 100%, rgba(167,139,250,0.02) 0%, transparent 50%);
-    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--text);font-family:var(--sans);font-weight:300;line-height:1.6;min-height:100vh;
+      background-image:radial-gradient(ellipse 120% 60% at 50% 0%,rgba(167,139,250,0.04) 0%,transparent 60%)}
 
-    /* ── MASTHEAD ── */
-    .masthead {
-      border-bottom: 1px solid var(--border2);
-      padding: 0 56px;
-      display: grid;
-      grid-template-columns: 180px 1fr 1fr;
-      align-items: stretch;
-      gap: 0;
-    }
-    .masthead-brand {
-      padding: 32px 40px 32px 0;
-      border-right: 1px solid var(--border2);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-    .brand {
-      font-family: var(--serif);
-      font-size: 38px;
-      font-weight: 300;
-      font-style: italic;
-      color: var(--white);
-      letter-spacing: 0.02em;
-      line-height: 1;
-    }
-    .brand-rule {
-      width: 40px;
-      height: 1px;
-      background: var(--gold);
-      margin: 10px 0;
-      opacity: 0.4;
-    }
-    .brand-sub {
-      font-family: var(--sans);
-      font-size: 8px;
-      font-weight: 500;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      color: var(--dim);
-    }
-    .masthead-price {
-      padding: 32px 40px;
-      border-right: 1px solid var(--border2);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-    .price-eyebrow {
-      font-family: var(--sans);
-      font-size: 8px;
-      font-weight: 500;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--dim);
-      margin-bottom: 10px;
-    }
-    .price-row {
-      display: flex;
-      align-items: baseline;
-      gap: 16px;
-      margin-bottom: 14px;
-    }
-    .price-num {
-      font-family: var(--mono);
-      font-size: 44px;
-      font-weight: 700;
-      color: var(--white);
-      line-height: 1;
-      letter-spacing: -2px;
-    }
-    .price-delta {
-      font-family: var(--mono);
-      font-size: 16px;
-      font-weight: 700;
-      letter-spacing: 0.03em;
-    }
-    .price-stats {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px 0;
-      align-items: center;
-    }
-    .pstat {
-      font-family: var(--mono);
-      font-size: 10px;
-      color: var(--text);
-    }
-    .pstat-l {
-      color: var(--dim);
-      margin-right: 4px;
-      font-size: 9px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
-    .pstat-sep {
-      color: var(--border2);
-      margin: 0 8px;
-      font-size: 12px;
-    }
-    .masthead-thesis {
-      padding: 32px 0 32px 40px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-    .headline-kicker {
-      font-family: var(--sans);
-      font-size: 8px;
-      font-weight: 600;
-      letter-spacing: 0.25em;
-      text-transform: uppercase;
-      color: var(--gold);
-      margin-bottom: 12px;
-    }
-    .headline-text {
-      font-family: var(--serif);
-      font-size: 20px;
-      font-weight: 400;
-      color: #e8ecf8;
-      line-height: 1.45;
-    }
+    /* MASTHEAD */
+    .masthead{border-bottom:1px solid var(--border2);padding:0 56px;display:grid;grid-template-columns:180px 1fr 1fr;align-items:stretch}
+    .masthead-brand{padding:32px 40px 32px 0;border-right:1px solid var(--border2);display:flex;flex-direction:column;justify-content:center}
+    .brand{font-family:var(--serif);font-size:38px;font-weight:300;font-style:italic;color:var(--white);line-height:1}
+    .brand-rule{width:40px;height:1px;background:var(--gold);margin:10px 0;opacity:0.4}
+    .brand-sub{font-family:var(--sans);font-size:8px;font-weight:500;letter-spacing:0.22em;text-transform:uppercase;color:var(--dim)}
+    .masthead-price{padding:32px 40px;border-right:1px solid var(--border2);display:flex;flex-direction:column;justify-content:center}
+    .price-eyebrow{font-size:8px;font-weight:500;letter-spacing:0.2em;text-transform:uppercase;color:var(--dim);margin-bottom:10px}
+    .price-row{display:flex;align-items:baseline;gap:16px;margin-bottom:14px}
+    .price-num{font-family:var(--mono);font-size:44px;font-weight:700;color:var(--white);line-height:1;letter-spacing:-2px}
+    .price-delta{font-family:var(--mono);font-size:16px;font-weight:700;color:#a78bfa}
+    .price-stats{display:flex;flex-wrap:wrap;gap:4px}
+    .pstat{font-family:var(--mono);font-size:10px;color:var(--text)}
+    .pstat-l{color:var(--dim);margin-right:4px;font-size:9px;text-transform:uppercase;letter-spacing:0.08em}
+    .pstat-sep{color:var(--border2);margin:0 6px;font-size:12px}
+    .masthead-thesis{padding:32px 0 32px 40px;display:flex;flex-direction:column;justify-content:center}
+    .headline-kicker{font-size:8px;font-weight:600;letter-spacing:0.25em;text-transform:uppercase;color:var(--gold);margin-bottom:12px}
+    .headline-text{font-family:var(--serif);font-size:20px;font-weight:400;color:var(--white);line-height:1.45}
 
-    /* ── DATELINE ── */
-    .dateline {
-      padding: 10px 56px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-    .dateline-day {
-      font-family: var(--serif);
-      font-size: 11px;
-      font-style: italic;
-      color: var(--dim);
-      letter-spacing: 0.05em;
-    }
-    .dateline-line {
-      flex: 1;
-      height: 1px;
-      background: linear-gradient(90deg, var(--border2), transparent);
-    }
-    .dateline-edition {
-      font-family: var(--sans);
-      font-size: 9px;
-      font-weight: 500;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--dim);
-    }
+    /* DATELINE */
+    .dateline{padding:10px 56px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px}
+    .dateline-day{font-family:var(--serif);font-size:11px;font-style:italic;color:#7a6a52}
+    .dateline-line{flex:1;height:1px;background:linear-gradient(90deg,var(--border2),transparent)}
+    .dateline-edition{font-size:9px;font-weight:500;letter-spacing:0.2em;text-transform:uppercase;color:var(--dim)}
 
-    /* ── COLUMNS ── */
-    .columns {
-      display: grid;
-      grid-template-columns: 1.1fr 0.9fr;
-      border-bottom: 1px solid var(--border2);
-    }
-    .col {
-      padding: 36px 56px;
-    }
-    .col + .col {
-      border-left: 1px solid var(--border2);
-    }
-    .col-label {
-      font-family: var(--sans);
-      font-size: 8px;
-      font-weight: 600;
-      letter-spacing: 0.3em;
-      text-transform: uppercase;
-      color: var(--gold);
-      padding-bottom: 12px;
-      margin-bottom: 6px;
-      border-bottom: 1px solid var(--border2);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .col-label::before {
-      content: '';
-      display: inline-block;
-      width: 16px;
-      height: 1px;
-      background: var(--gold);
-      opacity: 0.5;
-    }
+    /* COLUMNS */
+    .columns{display:grid;grid-template-columns:1.1fr 0.9fr;border-bottom:1px solid var(--border2)}
+    .col{padding:36px 56px}
+    .col+.col{border-left:1px solid var(--border2)}
+    .col-label{font-size:8px;font-weight:600;letter-spacing:0.3em;text-transform:uppercase;color:var(--gold);
+      padding-bottom:12px;margin-bottom:6px;border-bottom:1px solid var(--border2);
+      display:flex;align-items:center;gap:10px}
+    .col-label::before{content:'';display:inline-block;width:16px;height:1px;background:var(--gold);opacity:0.5}
 
-    /* ── TICKER ROWS ── */
-    .row {
-      display: grid;
-      grid-template-columns: 56px 1fr auto 84px;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 0;
-      border-bottom: 1px solid var(--border);
-    }
-    .row:last-child { border-bottom: none; }
-    .sym {
-      font-family: var(--mono);
-      font-size: 10px;
-      font-weight: 700;
-      color: var(--gold2);
-      letter-spacing: 0.08em;
-    }
-    .co {
-      font-size: 11px;
-      font-weight: 300;
-      color: #7880a8;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      letter-spacing: 0.03em;
-    }
-    .px {
-      font-family: var(--mono);
-      font-size: 11px;
-      color: var(--text);
-      text-align: right;
-    }
-    .ch {
-      font-family: var(--mono);
-      font-size: 10px;
-      font-weight: 700;
-      text-align: right;
-      letter-spacing: 0.05em;
-    }
+    /* ROWS */
+    .row{display:grid;grid-template-columns:56px 1fr auto 84px;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+    .row:last-child{border-bottom:none}
+    .sym{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--white);letter-spacing:0.08em}
+    .co{font-size:11px;font-weight:300;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .px{font-family:var(--mono);font-size:11px;color:var(--text);text-align:right}
+    .ch{font-family:var(--mono);font-size:10px;font-weight:700;text-align:right;letter-spacing:0.05em}
 
-    /* ── CHART ── */
-    .chart-container {
-      margin-top: 28px;
-    }
-    .chart-wrap {
-      height: 150px;
-      margin-top: 10px;
-    }
-    .vol-wrap {
-      height: 40px;
-      margin-top: 3px;
-    }
+    /* STATS + CHART */
+    .chart-container{margin-top:28px}
+    .stat-strip{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+    .stat-pill{background:rgba(167,139,250,0.07);border:0.5px solid var(--border);border-radius:6px;
+      padding:5px 10px;display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;min-width:55px}
+    .sl{font-size:8px;letter-spacing:0.12em;text-transform:uppercase;color:var(--dim)}
+    .sv{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--white)}
 
-    /* ── ANALYSIS SECTION ── */
-    .analysis {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      border-bottom: 1px solid var(--border2);
-    }
-    .a-col {
-      padding: 36px 56px;
-    }
-    .a-col + .a-col {
-      border-left: 1px solid var(--border2);
-    }
-    .a-label {
-      font-family: var(--sans);
-      font-size: 8px;
-      font-weight: 600;
-      letter-spacing: 0.3em;
-      text-transform: uppercase;
-      color: var(--gold);
-      padding-bottom: 12px;
-      margin-bottom: 16px;
-      border-bottom: 1px solid var(--border2);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .a-label::before {
-      content: '';
-      display: inline-block;
-      width: 16px;
-      height: 1px;
-      background: var(--gold);
-      opacity: 0.5;
-    }
-    .a-col ul {
-      list-style: none;
-      padding: 0;
-    }
-    .a-col li {
-      font-family: var(--sans);
-      font-size: 14px;
-      font-weight: 400;
-      color: #c0c8e8;
-      line-height: 1.75;
-      padding: 11px 0 11px 20px;
-      border-bottom: 1px solid var(--border);
-      position: relative;
-    }
-    .a-col li::before {
-      content: '◆';
-      position: absolute;
-      left: 0;
-      font-size: 5px;
-      color: var(--gold);
-      top: 18px;
-    }
-    .a-col li:last-child { border-bottom: none; }
-    .a-col p {
-      font-family: var(--sans);
-      font-size: 14px;
-      font-weight: 400;
-      color: #c0c8e8;
-      line-height: 1.75;
-      margin-bottom: 12px;
-    }
-    .a-col p:last-child { margin-bottom: 0; }
-    .a-divider {
-      border: none;
-      border-top: 1px solid var(--border2);
-      margin: 28px 0 24px;
-    }
+    /* ANALYSIS */
+    .analysis{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--border2)}
+    .a-col{padding:36px 56px}
+    .a-col+.a-col{border-left:1px solid var(--border2)}
+    .a-label{font-size:8px;font-weight:600;letter-spacing:0.3em;text-transform:uppercase;color:var(--gold);
+      padding-bottom:12px;margin-bottom:16px;border-bottom:1px solid var(--border2);
+      display:flex;align-items:center;gap:10px}
+    .a-label::before{content:'';display:inline-block;width:16px;height:1px;background:var(--gold);opacity:0.5}
+    .a-col ul{list-style:none;padding:0}
+    .a-col li{font-size:14px;font-weight:400;color:#c0c8e8;line-height:1.75;padding:10px 0 10px 18px;
+      border-bottom:1px solid var(--border);position:relative}
+    .a-col li::before{content:'◆';position:absolute;left:0;font-size:5px;color:var(--gold);top:17px}
+    .a-col li:last-child{border-bottom:none}
+    .a-divider{border:none;border-top:1px solid var(--border2);margin:28px 0 24px}
 
-    /* ── COLOPHON ── */
-    .colophon {
-      padding: 16px 56px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .colophon-left {
-      font-family: var(--serif);
-      font-style: italic;
-      font-size: 12px;
-      color: var(--dim);
-    }
-    .colophon-right {
-      font-family: var(--sans);
-      font-size: 9px;
-      font-weight: 500;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--dim);
-    }
+    /* SCENARIO CARDS */
+    .chart-summary{font-size:13px;color:var(--text);line-height:1.7;margin-bottom:14px}
+    .scenario-card{border-radius:6px;padding:14px 16px;margin-bottom:10px}
+    .sc-header{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+    .sc-title{font-size:13px;font-weight:600;color:var(--white)}
+    .sc-badge{font-family:var(--mono);font-size:10px;font-weight:700;border:1px solid;border-radius:4px;padding:2px 7px}
+    .sc-body{font-size:13px;color:#c0c8e8;line-height:1.7;margin:0 0 8px}
+    .sc-trigger{font-size:12px;color:var(--dim);border-top:0.5px solid rgba(255,255,255,0.06);padding-top:8px}
+    .sc-trigger span{font-weight:600;color:var(--text)}
+    .sc-tell{font-size:12px;color:var(--text);background:rgba(167,139,250,0.05);
+      border:0.5px solid var(--border);border-radius:6px;padding:10px 14px;margin:10px 0}
+    .sc-tell span{font-weight:600;color:#a78bfa}
+    .sc-caveat{font-size:11px;color:var(--dim);font-style:italic;margin-top:10px;line-height:1.6}
 
-    @media (max-width: 780px) {
-      .masthead, .dateline, .col, .a-col, .colophon { padding-left: 20px; padding-right: 20px; }
-      .masthead { grid-template-columns: 1fr; }
-      .masthead-brand { border-right: none; padding-right: 0; border-bottom: 1px solid var(--border2); }
-      .masthead-price { border-right: none; border-bottom: 1px solid var(--border2); }
-      .masthead-thesis { padding-left: 0; }
-      .columns, .analysis { grid-template-columns: 1fr; }
-      .col + .col, .a-col + .a-col { border-left: none; border-top: 1px solid var(--border2); }
-      .price-num { font-size: 32px; }
-      .brand { font-size: 34px; }
-      .headline-text { font-size: 18px; }
+    /* FOOTER */
+    .colophon{padding:16px 56px;display:flex;justify-content:space-between;align-items:center}
+    .colophon-left{font-family:var(--serif);font-style:italic;font-size:12px;color:var(--dim)}
+    .colophon-right{font-size:9px;font-weight:500;letter-spacing:0.18em;text-transform:uppercase;color:var(--dim)}
+
+    @media(max-width:780px){
+      .masthead,.dateline,.col,.a-col,.colophon{padding-left:20px;padding-right:20px}
+      .masthead{grid-template-columns:1fr}
+      .masthead-brand{border-right:none;padding-right:0;border-bottom:1px solid var(--border2)}
+      .masthead-price{border-right:none;border-bottom:1px solid var(--border2)}
+      .masthead-thesis{padding-left:0}
+      .columns,.analysis{grid-template-columns:1fr}
+      .col+.col,.a-col+.a-col{border-left:none;border-top:1px solid var(--border2)}
+      .price-num{font-size:32px}
     }
   </style>
 </head>
@@ -393,28 +124,28 @@
     <div class="brand-sub">Nasdaq&#8209;100 &nbsp;·&nbsp; Evening Report</div>
   </div>
   <div class="masthead-price">
-    <div class="price-eyebrow">QQQ · THURSDAY · MAY 21, 2026</div>
+    <div class="price-eyebrow">QQQ · FRIDAY · MAY 22, 2026</div>
     <div class="price-row">
-      <div class="price-num">$714.51</div>
-      <div class="price-delta" style="color:#a78bfa">▲ +0.19%</div>
+      <div class="price-num">$717.54</div>
+      <div class="price-delta">▲ +0.42%</div>
     </div>
     <div class="price-stats">
-      <span class="pstat"><span class="pstat-l">H</span> $717.12</span>
+      <span class="pstat"><span class="pstat-l">H</span>$722.12</span>
       <span class="pstat-sep">·</span>
-      <span class="pstat"><span class="pstat-l">L</span> $706.77</span>
+      <span class="pstat"><span class="pstat-l">L</span>$715.95</span>
       <span class="pstat-sep">·</span>
-      <span class="pstat"><span class="pstat-l">Prev</span> $713.15</span>
+      <span class="pstat"><span class="pstat-l">Prev</span>$714.51</span>
       <span class="pstat-sep">·</span>
-      <span class="pstat"><span class="pstat-l">52W H</span> $722.03</span>
+      <span class="pstat"><span class="pstat-l">52W H</span>$722.03</span>
       <span class="pstat-sep">·</span>
-      <span class="pstat"><span class="pstat-l">52W L</span> $505.58</span>
+      <span class="pstat"><span class="pstat-l">52W L</span>$505.58</span>
       <span class="pstat-sep">·</span>
-      <span class="pstat"><span class="pstat-l">RSI 14</span> 72.1</span>
+      <span class="pstat"><span class="pstat-l">RSI 14</span>68.5</span>
     </div>
   </div>
   <div class="masthead-thesis">
     <div class="headline-kicker">Today's Thesis</div>
-    <div class="headline-text">QQQ closed at 714.51 with a mild rally off three-day lows, but volume collapsed to 36.0M — the weakest close in this recent cycle — signaling buyers are thin and conviction is absent.</div>
+    <div class="headline-text">Tech squeezed sideways today as mega-cap weakness offset modest QQQ resilience, with the 10Y yield sliding and volatility staying benign.</div>
   </div>
 </div>
 
@@ -427,75 +158,21 @@
 <div class="columns">
   <div class="col">
     <div class="col-label">Top Holdings</div>
-    <div class="row">
-          <span class="sym">NVDA</span>
-          <span class="co">NVIDIA</span>
-          <span class="px">$219.51</span>
-          <span class="ch" style="color:#f87171">▼1.77%</span>
-        </div><div class="row">
-          <span class="sym">AAPL</span>
-          <span class="co">Apple</span>
-          <span class="px">$304.99</span>
-          <span class="ch" style="color:#a78bfa">▲+0.91%</span>
-        </div><div class="row">
-          <span class="sym">MSFT</span>
-          <span class="co">Microsoft</span>
-          <span class="px">$419.09</span>
-          <span class="ch" style="color:#f87171">▼0.47%</span>
-        </div><div class="row">
-          <span class="sym">AMZN</span>
-          <span class="co">Amazon</span>
-          <span class="px">$268.46</span>
-          <span class="ch" style="color:#a78bfa">▲+1.30%</span>
-        </div><div class="row">
-          <span class="sym">GOOGL</span>
-          <span class="co">Alphabet</span>
-          <span class="px">$387.66</span>
-          <span class="ch" style="color:#f87171">▼0.32%</span>
-        </div><div class="row">
-          <span class="sym">META</span>
-          <span class="co">Meta</span>
-          <span class="px">$607.38</span>
-          <span class="ch" style="color:#a78bfa">▲+0.38%</span>
-        </div><div class="row">
-          <span class="sym">TSLA</span>
-          <span class="co">Tesla</span>
-          <span class="px">$417.85</span>
-          <span class="ch" style="color:#a78bfa">▲+0.14%</span>
-        </div><div class="row">
-          <span class="sym">AVGO</span>
-          <span class="co">Broadcom</span>
-          <span class="px">$414.57</span>
-          <span class="ch" style="color:#f87171">▼0.76%</span>
-        </div><div class="row">
-          <span class="sym">COST</span>
-          <span class="co">Costco</span>
-          <span class="px">$1050.45</span>
-          <span class="ch" style="color:#f87171">▼2.19%</span>
-        </div><div class="row">
-          <span class="sym">NFLX</span>
-          <span class="co">Netflix</span>
-          <span class="px">$89.3</span>
-          <span class="ch" style="color:#a78bfa">▲+1.37%</span>
-        </div>
+    <div class="row"><span class="sym">NVDA</span><span class="co">NVIDIA</span><span class="px">$215.33</span><span class="ch" style="color:#f87171">▼1.90%</span></div><div class="row"><span class="sym">AAPL</span><span class="co">Apple</span><span class="px">$308.82</span><span class="ch" style="color:#a78bfa">▲+1.26%</span></div><div class="row"><span class="sym">MSFT</span><span class="co">Microsoft</span><span class="px">$418.57</span><span class="ch" style="color:#f87171">▼0.12%</span></div><div class="row"><span class="sym">AMZN</span><span class="co">Amazon</span><span class="px">$266.32</span><span class="ch" style="color:#f87171">▼0.80%</span></div><div class="row"><span class="sym">GOOGL</span><span class="co">Alphabet</span><span class="px">$382.97</span><span class="ch" style="color:#f87171">▼1.21%</span></div><div class="row"><span class="sym">META</span><span class="co">Meta</span><span class="px">$610.26</span><span class="ch" style="color:#a78bfa">▲+0.47%</span></div><div class="row"><span class="sym">TSLA</span><span class="co">Tesla</span><span class="px">$426.01</span><span class="ch" style="color:#a78bfa">▲+1.95%</span></div><div class="row"><span class="sym">AVGO</span><span class="co">Broadcom</span><span class="px">$414.14</span><span class="ch" style="color:#f87171">▼0.10%</span></div><div class="row"><span class="sym">COST</span><span class="co">Costco</span><span class="px">$1028.24</span><span class="ch" style="color:#f87171">▼2.11%</span></div><div class="row"><span class="sym">NFLX</span><span class="co">Netflix</span><span class="px">$88.6</span><span class="ch" style="color:#f87171">▼0.78%</span></div>
   </div>
   <div class="col">
     <div class="col-label">Macro Indicators</div>
-    <div class="row">
-          <span class="sym">10Y Yield</span>
-          <span class="co"></span>
-          <span class="px">4.586%</span>
-          <span class="ch" style="color:#a78bfa">▲+0.31%</span>
-        </div><div class="row">
-          <span class="sym">VIX</span>
-          <span class="co"></span>
-          <span class="px">16.76%</span>
-          <span class="ch" style="color:#f87171">▼3.90%</span>
-        </div>
+    <div class="row"><span class="sym">10Y Yield</span><span class="co"></span><span class="px">4.558%</span><span class="ch" style="color:#f87171">▼0.61%</span></div><div class="row"><span class="sym">VIX</span><span class="co"></span><span class="px">16.7%</span><span class="ch" style="color:#f87171">▼0.36%</span></div>
     <div class="chart-container">
-      <div class="col-label">30-Day Price</div>
-      <div class="chart-wrap"><canvas id="sparkline"></canvas></div>
-    <div class="vol-wrap"><canvas id="volbars"></canvas></div>
+      <div class="col-label" style="margin-top:28px;margin-bottom:14px">30-Day Price · Volume</div>
+      <div class="stat-strip">
+        <div class="stat-pill"><span class="sl">Period H</span><span class="sv">$722.12</span></div>
+        <div class="stat-pill"><span class="sl">Period L</span><span class="sv">$555.60</span></div>
+        <div class="stat-pill"><span class="sl">Last</span><span class="sv">$717.54</span></div>
+        <div class="stat-pill"><span class="sl">Drawdown</span><span class="sv" style="color:#f87171">-0.6%</span></div>
+        <div class="stat-pill"><span class="sl">RSI 14</span><span class="sv">68.5</span></div>
+      </div>
+      <div id="lw-chart" style="margin-top:12px"></div>
     </div>
   </div>
 </div>
@@ -503,97 +180,52 @@
 <div class="analysis">
   <div class="a-col">
     <div class="a-label">What Moved QQQ Today</div>
-    <ul><li>QQQ up 0.19% to 714.51: recovered from May 19 low of 701.53 in a two-day bounce, but the 36M volume print is half of the 51.8M seen on May 15, telling you this move lacks institutional backing.</li><li>NVIDIA down 1.77% to 219.51: the mega-cap AI proxy gave back gains while the index went flat, suggesting rotation away from concentrated long positions into defensive names like Apple and Netflix.</li><li>Costco down 2.19% to 1050.45: largest daily loser despite being a defensive play, likely a position unwind or hedge liquidation tied to risk-off sentiment earlier in the week.</li><li>Apple up 0.91% to 304.99: outperformer today alongside Netflix up 1.37%, indicating a flight-to-quality into mega-cap stable earners while growth tech took damage.</li><li>VIX down 3.9% to 16.76: complacency signal after a three-day selloff; this low volatility print combined with weak volume suggests participants are either hedged or simply absent before a data or earnings event.</li></ul>
+    <ul><li>Invesco QQQ +0.42% to 717.54: holding above the 715.97 low from yesterday, testing the upper band of a three-week consolidation zone between 695 and 722</li><li>NVIDIA -1.9% to 215.33: semiconductor sector soft on no specific catalyst; sits 5.5% below its April highs; watch for mean reversion if chip-exposed names stabilize</li><li>Costco -2.11% to 1028.24: largest single-day loser in your book; no earnings catalyst visible; possible rotation out of defensive mega-caps into growth on falling rates</li><li>Tesla +1.95% to 426.01: outperformer despite sector headwinds; beneficiary of lower 10Y yield (now 4.558, down 61 bps); growth story repricing lower rates as tailwind</li><li>10Y Yield -0.61% to 4.558: biggest macro move; cutting into bond yields is starting to juice rate-sensitive equities; watch this as the dominant regime setter for tech</li></ul>
   </div>
   <div class="a-col">
-    <div class="a-label">Chart Pattern</div>
-    <p>QQQ has traced out a textbook "lower lows and lower highs" breakdown from the May 15 high of 719.79 through the May 19 flush to 701.53, followed by a two-day recovery attempt that stalled at 714.51. This is a bear flag pattern on the daily timeframe. Key technical levels: 719.79 resistance (recent high), 714.51 current close, 708.93 mid-range support from May 15, and 701.53 support marking the three-day lows. Volume structure is the critical tell: the rally from 701.53 to 714.51 occurred on 36.8M and 36.0M volume — distinctly below the 51.8M entry point — confirming a dead-cat bounce rather than conviction buying.</p><p>Bullish case: buyers defend 708.93 support and push QQQ back above 719.79 on a daily close with volume exceeding 45M, signaling institutional re-entry and targeting 730-735 as a retest of the broader uptrend.</p><p>Bearish case: QQQ fails to reclaim 708.93 on the next down day and closes below 705.88, with volume spiking above 48M, confirming the bear flag and targeting 695-700 as the next systematic sell-off into the May 20 low structure.</p><p>The one key tell: a daily close either above 719.79 on +45M volume (bullish) or below 705.88 on +48M volume (bearish); anything in between is noise and chop. Remember this is technical analysis, not a prediction — an earnings miss from any mega-cap or a yield spike above 4.65% would override these levels overnight.</p>
+    <div class="a-label">Chart Pattern &amp; Scenarios</div>
+    <p class="chart-summary">QQQ is in a three-week range-bound pattern with clear support at 695.25 (May 19 low) and resistance at 722.12 (May 22 high). Volume has been choppy—today's 30.6M print is the lowest in 15 sessions, suggesting low conviction and potential for a move once direction is confirmed.</p>
+<div class="scenario-card" style="border-left:3px solid #a78bfa;background:rgba(167,139,250,0.07)"><div class="sc-header"><span class="sc-title">Break above 722 with follow-through</span><span class="sc-badge" style="color:#a78bfa;border-color:#a78bfa">~58% likely</span></div><p class="sc-body">QQQ breaks above the May 22 high of 722.12 and closes above 720 on elevated volume (45M+), which would open a path to the next resistance around 735-740. The falling 10Y yield is the fundamental tailwind here; any further rate cuts would accelerate this move. Broad-based participation from mega-cap tech (particularly NVIDIA and Broadcom) would confirm the breakout.</p><div class="sc-trigger"><span>Bullish trigger:</span> Close above 722 on volume exceeding 42M shares</div></div>
+<div class="scenario-card" style="border-left:3px solid #f87171;background:rgba(248,113,113,0.07)"><div class="sc-header"><span class="sc-title">Breakdown to support with 50-day retest</span><span class="sc-badge" style="color:#f87171;border-color:#f87171">~42% likely</span></div><p class="sc-body">QQQ rolls over below 708 and loses the 705.88 level (May 18 close), which would target the 695-698 zone and a retest of the May 19 swing low at 695.25. A macro shock (Fed hawkishness, earnings disappointment, or VIX spike above 18) could trigger this; watch for volume expansion on the downside as the key validator. NVIDIA weakness below 210 would likely precede any broader QQQ breakdown.</p><div class="sc-trigger"><span>Bearish trigger:</span> Close below 708 on volume exceeding 48M shares</div></div>
+<div class="sc-tell"><span>Key tell:</span> Watch the May 22 high of 722.12—if QQQ can't reclaim and hold above this level by the close of tomorrow's session, it signals the bulls lack conviction and sets up a retest of 708-705 support.</div>
+<p class="sc-caveat">This is technical pattern analysis, not a prediction or financial advice—macro events can override any chart setup overnight.</p>
     <hr class="a-divider">
     <div class="a-label">What to Watch Tomorrow</div>
-    <ul><li>CPI data release (May 22 or 23 depending on calendar): if CPI prints cool and yields fall back below 4.55%, QQQ likely gaps up to test 720 and holds above 710 into close; if hot, look for a gap down to 705 and a retest of 701.53 support by mid-session.</li><li>Fed speakers (watch for rate-hold rhetoric or inflation talk): dovish comments push QQQ above 720 and ease the VIX lower; hawkish language keeps QQQ pinned in the 705-715 range and elevates the bear flag risk.</li><li>NVIDIA earnings week (</li></ul>
+    <ul><li>Fed speakers (Barr, Kashkari scheduled): any hawkish comments could reignite bond selling and cap QQQ upside; bullish outcome keeps yields steady and targets 722+; bearish outcome pushes 10Y higher, drags QQQ below 710</li><li>Mega-cap earnings whispers and positioning data: watch for any hints on Q2 guidance and AI capex trends; bullish scenario re-rates NVIDIA and Broadcom higher, lifting QQQ to 725; bearish scenario reveals cautious guidance, pressuring 717-715 support</li><li>VIX stability below 17: current 16.7 reading is complacent; if VIX holds here, it signals low-conviction selling and favors the bullish breakout to 722+; if VIX spikes above 18, it often precedes a 2-3% pullback in QQQ to the 698 zone</li></ul>
   </div>
 </div>
 
 <div class="colophon">
-  <span class="colophon-left">Generated 7:33 PM ET</span>
+  <span class="colophon-left">Generated 10:36 PM ET</span>
   <span class="colophon-right">Data: Finnhub &nbsp;·&nbsp; Analysis: Claude AI</span>
 </div>
 
 <script>
-const raw = [{"date": "Apr 2", "close": 584.98, "high": 586.05, "low": 571.92, "volume": 50941700}, {"date": "Apr 6", "close": 588.5, "high": 590.61, "low": 584.69, "volume": 35108500}, {"date": "Apr 7", "close": 588.59, "high": 588.98, "low": 578.4, "volume": 49948200}, {"date": "Apr 8", "close": 606.09, "high": 609.9, "low": 602.12, "volume": 63086000}, {"date": "Apr 9", "close": 610.19, "high": 610.5, "low": 603.03, "volume": 37837500}, {"date": "Apr 10", "close": 611.07, "high": 613.67, "low": 609.58, "volume": 34038500}, {"date": "Apr 13", "close": 617.39, "high": 626.74, "low": 608.11, "volume": 32972100}, {"date": "Apr 14", "close": 628.6, "high": 628.6, "low": 620.1, "volume": 49921100}, {"date": "Apr 15", "close": 637.4, "high": 637.83, "low": 628.2, "volume": 50102400}, {"date": "Apr 16", "close": 640.47, "high": 642.18, "low": 635.26, "volume": 42320600}, {"date": "Apr 17", "close": 648.85, "high": 650.0, "low": 644.07, "volume": 53488900}, {"date": "Apr 20", "close": 646.79, "high": 648.76, "low": 642.52, "volume": 37138500}, {"date": "Apr 21", "close": 644.33, "high": 650.2, "low": 642.21, "volume": 39580500}, {"date": "Apr 22", "close": 655.11, "high": 655.33, "low": 648.52, "volume": 37368400}, {"date": "Apr 23", "close": 651.42, "high": 656.92, "low": 645.52, "volume": 40099800}, {"date": "Apr 24", "close": 663.88, "high": 664.51, "low": 656.53, "volume": 45563100}, {"date": "Apr 27", "close": 664.23, "high": 664.43, "low": 660.69, "volume": 32717000}, {"date": "Apr 28", "close": 657.55, "high": 659.64, "low": 653.81, "volume": 34147900}, {"date": "Apr 29", "close": 661.57, "high": 661.72, "low": 656.59, "volume": 31724900}, {"date": "Apr 30", "close": 667.74, "high": 668.9, "low": 657.56, "volume": 40622200}, {"date": "May 1", "close": 674.15, "high": 675.97, "low": 668.8, "volume": 39172600}, {"date": "May 4", "close": 672.88, "high": 676.73, "low": 668.9, "volume": 34542000}, {"date": "May 5", "close": 681.61, "high": 682.77, "low": 677.51, "volume": 37101100}, {"date": "May 6", "close": 695.77, "high": 695.93, "low": 686.48, "volume": 38778500}, {"date": "May 7", "close": 694.94, "high": 701.24, "low": 691.77, "volume": 43779100}, {"date": "May 8", "close": 711.23, "high": 711.23, "low": 699.5, "volume": 44320400}, {"date": "May 11", "close": 713.29, "high": 714.59, "low": 708.91, "volume": 36019100}, {"date": "May 12", "close": 707.24, "high": 710.18, "low": 696.64, "volume": 45873000}, {"date": "May 13", "close": 714.71, "high": 716.65, "low": 704.83, "volume": 40012500}, {"date": "May 14", "close": 719.79, "high": 722.03, "low": 714.22, "volume": 33327500}, {"date": "May 15", "close": 708.93, "high": 715.13, "low": 705.55, "volume": 51792700}, {"date": "May 18", "close": 705.88, "high": 712.07, "low": 698.85, "volume": 49834500}, {"date": "May 19", "close": 701.53, "high": 706.49, "low": 695.25, "volume": 46827500}, {"date": "May 20", "close": 713.15, "high": 713.15, "low": 703.79, "volume": 36779200}, {"date": "May 21", "close": 714.51, "high": 717.12, "low": 706.77, "volume": 35994921}];
-if (raw.length > 1) {
-  const labels = raw.map(d => d.date);
-  const prices = raw.map(d => d.close);
-  const vols   = raw.map(d => d.volume || 0);
-  const maxVol = Math.max(...vols);
-  const mn = Math.min(...prices) * 0.995;
-  const mx = Math.max(...prices) * 1.005;
-
-  const priceCtx = document.getElementById('sparkline').getContext('2d');
-  const g = priceCtx.createLinearGradient(0, 0, 0, 140);
-  g.addColorStop(0, 'rgba(167,139,250,0.18)');
-  g.addColorStop(1, 'rgba(167,139,250,0)');
-
-  new Chart(priceCtx, {
-    type: 'line',
-    data: { labels, datasets: [{ data: prices, borderColor: '#a78bfa',
-      borderWidth: 2, backgroundColor: g, fill: true,
-      tension: 0.3, pointRadius: 0, pointHoverRadius: 5,
-      pointHoverBackgroundColor: '#a78bfa' }] },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            title: i => i[0].label,
-            label: i => {
-              const d = raw[i[0].dataIndex];
-              const lines = ['Close: $' + i[0].parsed.y.toFixed(2)];
-              if (d.high)   lines.push('High:  $' + d.high.toFixed(2));
-              if (d.low)    lines.push('Low:   $' + d.low.toFixed(2));
-              if (d.volume) lines.push('Vol:   ' + (d.volume/1e6).toFixed(1) + 'M');
-              return lines;
-            }
-          },
-          backgroundColor: '#0d0e12', titleColor: '#c0c8e8',
-          bodyColor: '#a78bfa', borderColor: '#252838', borderWidth: 1, padding: 10
-        }
-      },
-      scales: {
-        x: { display: false },
-        y: { min: mn, max: mx, display: true, position: 'right',
-          grid: { color: 'rgba(167,139,250,0.05)', drawBorder: false },
-          ticks: { color: '#7880a8', font: { size: 10 },
-            callback: v => '$' + v.toFixed(0), maxTicksLimit: 5 }
-        }
-      }
-    }
+const raw = [{"date": "Mar 27", "ymd": "2026-03-27", "open": 570.81, "high": 571.02, "low": 561.57, "close": 562.58, "volume": 82702200}, {"date": "Mar 30", "ymd": "2026-03-30", "open": 567.38, "high": 568.05, "low": 555.6, "close": 558.28, "volume": 70602600}, {"date": "Mar 31", "ymd": "2026-03-31", "open": 564.29, "high": 578.64, "low": 564.21, "close": 577.18, "volume": 95878000}, {"date": "Apr 1", "ymd": "2026-04-01", "open": 581.48, "high": 587.74, "low": 580.42, "close": 584.31, "volume": 79435100}, {"date": "Apr 2", "ymd": "2026-04-02", "open": 573.97, "high": 586.05, "low": 571.92, "close": 584.98, "volume": 50941700}, {"date": "Apr 6", "ymd": "2026-04-06", "open": 586.23, "high": 590.61, "low": 584.69, "close": 588.5, "volume": 35108500}, {"date": "Apr 7", "ymd": "2026-04-07", "open": 585.64, "high": 588.98, "low": 578.4, "close": 588.59, "volume": 49948200}, {"date": "Apr 8", "ymd": "2026-04-08", "open": 608.71, "high": 609.9, "low": 602.12, "close": 606.09, "volume": 63086000}, {"date": "Apr 9", "ymd": "2026-04-09", "open": 605.93, "high": 610.5, "low": 603.03, "close": 610.19, "volume": 37837500}, {"date": "Apr 10", "ymd": "2026-04-10", "open": 611.84, "high": 613.67, "low": 609.58, "close": 611.07, "volume": 34038500}, {"date": "Apr 13", "ymd": "2026-04-13", "open": 609.48, "high": 626.74, "low": 608.11, "close": 617.39, "volume": 32972100}, {"date": "Apr 14", "ymd": "2026-04-14", "open": 620.22, "high": 628.6, "low": 620.1, "close": 628.6, "volume": 49921100}, {"date": "Apr 15", "ymd": "2026-04-15", "open": 629.08, "high": 637.83, "low": 628.2, "close": 637.4, "volume": 50102400}, {"date": "Apr 16", "ymd": "2026-04-16", "open": 639.21, "high": 642.18, "low": 635.26, "close": 640.47, "volume": 42320600}, {"date": "Apr 17", "ymd": "2026-04-17", "open": 645.59, "high": 650.0, "low": 644.07, "close": 648.85, "volume": 53488900}, {"date": "Apr 20", "ymd": "2026-04-20", "open": 648.04, "high": 648.76, "low": 642.52, "close": 646.79, "volume": 37138500}, {"date": "Apr 21", "ymd": "2026-04-21", "open": 648.41, "high": 650.2, "low": 642.21, "close": 644.33, "volume": 39580500}, {"date": "Apr 22", "ymd": "2026-04-22", "open": 650.15, "high": 655.33, "low": 648.52, "close": 655.11, "volume": 37368400}, {"date": "Apr 23", "ymd": "2026-04-23", "open": 653.55, "high": 656.92, "low": 645.52, "close": 651.42, "volume": 40099800}, {"date": "Apr 24", "ymd": "2026-04-24", "open": 658.51, "high": 664.51, "low": 656.53, "close": 663.88, "volume": 45563100}, {"date": "Apr 27", "ymd": "2026-04-27", "open": 663.4, "high": 664.43, "low": 660.69, "close": 664.23, "volume": 32717000}, {"date": "Apr 28", "ymd": "2026-04-28", "open": 657.41, "high": 659.64, "low": 653.81, "close": 657.55, "volume": 34147900}, {"date": "Apr 29", "ymd": "2026-04-29", "open": 658.63, "high": 661.72, "low": 656.59, "close": 661.57, "volume": 31724900}, {"date": "Apr 30", "ymd": "2026-04-30", "open": 665.35, "high": 668.9, "low": 657.56, "close": 667.74, "volume": 40622200}, {"date": "May 1", "ymd": "2026-05-01", "open": 669.16, "high": 675.97, "low": 668.8, "close": 674.15, "volume": 39172600}, {"date": "May 4", "ymd": "2026-05-04", "open": 674.66, "high": 676.73, "low": 668.9, "close": 672.88, "volume": 34542000}, {"date": "May 5", "ymd": "2026-05-05", "open": 677.96, "high": 682.77, "low": 677.51, "close": 681.61, "volume": 37101100}, {"date": "May 6", "ymd": "2026-05-06", "open": 687.78, "high": 695.93, "low": 686.48, "close": 695.77, "volume": 38778500}, {"date": "May 7", "ymd": "2026-05-07", "open": 696.58, "high": 701.24, "low": 691.77, "close": 694.94, "volume": 43779100}, {"date": "May 8", "ymd": "2026-05-08", "open": 699.92, "high": 711.23, "low": 699.5, "close": 711.23, "volume": 44320400}, {"date": "May 11", "ymd": "2026-05-11", "open": 710.36, "high": 714.59, "low": 708.91, "close": 713.29, "volume": 36019100}, {"date": "May 12", "ymd": "2026-05-12", "open": 708.22, "high": 710.18, "low": 696.64, "close": 707.24, "volume": 45873000}, {"date": "May 13", "ymd": "2026-05-13", "open": 709.96, "high": 716.65, "low": 704.83, "close": 714.71, "volume": 40012500}, {"date": "May 14", "ymd": "2026-05-14", "open": 714.62, "high": 722.03, "low": 714.22, "close": 719.79, "volume": 33327500}, {"date": "May 15", "ymd": "2026-05-15", "open": 710.14, "high": 715.13, "low": 705.55, "close": 708.93, "volume": 51792700}, {"date": "May 18", "ymd": "2026-05-18", "open": 711.54, "high": 712.07, "low": 698.85, "close": 705.88, "volume": 49834500}, {"date": "May 19", "ymd": "2026-05-19", "open": 699.81, "high": 706.49, "low": 695.25, "close": 701.53, "volume": 46827500}, {"date": "May 20", "ymd": "2026-05-20", "open": 705.29, "high": 713.15, "low": 703.79, "close": 713.15, "volume": 36779200}, {"date": "May 21", "ymd": "2026-05-21", "open": 708.99, "high": 717.12, "low": 706.77, "close": 714.51, "volume": 36415400}, {"date": "May 22", "ymd": "2026-05-22", "open": 718.06, "high": 722.12, "low": 715.97, "close": 717.54, "volume": 30599640}];
+if (raw.length > 1 && typeof LightweightCharts !== 'undefined') {
+  const wrap = document.getElementById('lw-chart');
+  const chart = LightweightCharts.createChart(wrap, {
+    width: wrap.clientWidth || 800,
+    height: 220,
+    layout: { background: { color: 'transparent' }, textColor: '#7880a8' },
+    grid: { vertLines: { color: 'rgba(167,139,250,0.05)' }, horzLines: { color: 'rgba(167,139,250,0.05)' } },
+    crosshair: { mode: 1 },
+    rightPriceScale: { borderColor: '#1c1f2a', scaleMargins: { top: 0.05, bottom: 0.28 } },
+    timeScale: { borderColor: '#1c1f2a', timeVisible: true },
   });
-
-  // Volume bars
-  const volCtx = document.getElementById('volbars').getContext('2d');
-  new Chart(volCtx, {
-    type: 'bar',
-    data: { labels, datasets: [{ data: vols,
-      backgroundColor: raw.map((d, i) =>
-        i === 0 ? 'rgba(167,139,250,0.3)' :
-        d.close >= raw[i-1].close ? 'rgba(167,139,250,0.45)' : 'rgba(248,113,113,0.35)'
-      ),
-      borderWidth: 0, borderRadius: 1 }] },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: {
-        callbacks: { label: i => (i.parsed.y/1e6).toFixed(1) + 'M shares' },
-        backgroundColor: '#0d0e12', bodyColor: '#7880a8',
-        borderColor: '#252838', borderWidth: 1, padding: 8
-      }},
-      scales: {
-        x: { display: false },
-        y: { display: false, min: 0, max: maxVol * 3 }
-      }
-    }
+  const candles = chart.addCandlestickSeries({
+    upColor: '#a78bfa', downColor: '#f87171',
+    borderUpColor: '#a78bfa', borderDownColor: '#f87171',
+    wickUpColor: '#a78bfa', wickDownColor: '#f87171',
   });
+  candles.setData(raw.map(d => ({ time: d.ymd, open: d.open, high: d.high, low: d.low, close: d.close })));
+  const vol = chart.addHistogramSeries({ priceFormat: { type: 'volume' }, priceScaleId: 'vol' });
+  chart.priceScale('vol').applyOptions({ scaleMargins: { top: 0.82, bottom: 0 } });
+  vol.setData(raw.map((d, i) => ({
+    time: d.ymd, value: d.volume,
+    color: i > 0 && d.close >= raw[i-1].close ? 'rgba(167,139,250,0.4)' : 'rgba(248,113,113,0.35)',
+  })));
+  window.addEventListener('resize', () => chart.applyOptions({ width: wrap.clientWidth }));
 }
 </script>
 </body>
