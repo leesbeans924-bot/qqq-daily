@@ -235,6 +235,24 @@ def bullets_to_html(text):
     return "<ul>" + "".join(lines) + "</ul>" if lines else ""
 
 
+
+def calc_rsi(prices, period=14):
+    """Calculate RSI from a list of closing prices."""
+    if len(prices) < period + 1:
+        return None
+    deltas = [prices[i] - prices[i-1] for i in range(1, len(prices))]
+    gains  = [d for d in deltas if d > 0]
+    losses = [-d for d in deltas if d < 0]
+    if not gains or not losses:
+        return None
+    avg_gain = sum(gains[-period:]) / period
+    avg_loss = sum(losses[-period:]) / period
+    if avg_loss == 0:
+        return 100.0
+    rs = avg_gain / avg_loss
+    return round(100 - (100 / (1 + rs)), 1)
+
+
 def build_html(quotes, macro, chart_data, analysis):
     et       = pytz.timezone("America/New_York")
     now      = datetime.now(et)
