@@ -89,7 +89,7 @@ def fetch_qqq_30d():
     try:
         r = requests.get(
             "https://query1.finance.yahoo.com/v8/finance/chart/QQQ",
-            params={"interval": "1d", "range": "40d"},
+            params={"interval": "1d", "range": "1y"},
             headers={"User-Agent": "Mozilla/5.0 (compatible)"}, timeout=10)
         data  = r.json()["chart"]["result"][0]
         times = data["timestamp"]
@@ -108,7 +108,7 @@ def fetch_qqq_30d():
                 "close":  round(float(c), 2),
                 "volume": int(v) if v else 0,
             })
-        print(f"  Chart: {len(result)} days OK")
+        print(f"  Chart: {len(result)} days (1Y) OK")
         return result
     except Exception as e:
         print(f"  Chart error: {e}")
